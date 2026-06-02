@@ -47,7 +47,7 @@ export default function Home() {
         ])
         setUnidades(uns ?? [])
         setImagenes(imgs ?? [])
-        const pisosUnicos = [...new Set((uns ?? []).map((u: any) => u.piso).filter(Boolean))] as string[]
+        const pisosUnicos = Array.from(new Set((uns ?? []).map((u: any) => u.piso).filter(Boolean))) as string[]
         setPisos(pisosUnicos.sort())
       }
       setLoading(false)
