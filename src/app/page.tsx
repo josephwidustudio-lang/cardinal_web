@@ -402,20 +402,21 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
         </h2>
       </div>
 
-      {/* Grid - flexible layout */}
+      {/* Mosaic Grid */}
       <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gridAutoRows: '250px',
+        gridAutoFlow: 'dense',
         gap: '3px',
         padding: '0 3px',
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         margin: '0 auto'
       }}>
         {shown.map((img, i) => {
-          const layout = layouts[i]
           const isVisible = visibleItems.has(i)
-          const totalFlex = layouts.reduce((sum, l) => sum + l.flex, 0)
-          const widthPercent = (layout.flex / totalFlex) * 100
+          // Patrón de grid items: algunos ocupan 2x2 para efecto de mosaico
+          const isBig = i % 4 === 0 || i % 4 === 2
           return (
             <div
               key={img.id}
@@ -425,8 +426,8 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
               onMouseEnter={() => setHoverId(img.id)}
               onMouseLeave={() => setHoverId(null)}
               style={{
-                flex: `${layout.flex} 0 calc(${widthPercent}% - 3px)`,
-                aspectRatio: layout.ratio,
+                gridColumn: isBig ? 'span 2' : 'span 1',
+                gridRow: isBig ? 'span 2' : 'span 1',
                 overflow: 'hidden',
                 cursor: 'zoom-in',
                 position: 'relative',
