@@ -99,7 +99,13 @@ export async function POST(req: NextRequest) {
     })
     console.log('model created')
 
-    const history = messages.slice(0, -1).map((m: any) => ({
+    // Gemini requiere que el historial empiece con 'user', ignoramos mensajes iniciales del asistente
+    const historyRaw = messages.slice(0, -1).filter((_: any, i: number, arr: any[]) => {
+      // Saltear mensajes de 'assistant' al inicio del array
+      const firstUserIdx = arr.findIndex((m: any) => m.role === 'user')
+      return i >= firstUserIdx
+    })
+    const history = historyRaw.map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }))
