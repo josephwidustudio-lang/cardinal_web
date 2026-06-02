@@ -38,23 +38,23 @@ export default function NuevoEdificio() {
   }
 
   const inputStyle = {
-    width: '100%', background: 'transparent', color: '#F5F2EE',
+    width: '100%', background: 'transparent', color: '#F5F0EA',
     fontSize: '0.9rem', padding: '0.75rem 0', outline: 'none',
-    border: 'none', borderBottom: '1px solid rgba(201,169,110,0.25)',
+    border: 'none', borderBottom: '1px solid rgba(206,162,121,0.25)',
     fontFamily: 'system-ui, sans-serif', marginBottom: '2rem'
   }
   const labelStyle = {
     display: 'block', fontSize: '0.65rem', letterSpacing: '0.2em',
-    textTransform: 'uppercase' as const, color: '#C9A96E', marginBottom: '0.5rem'
+    textTransform: 'uppercase' as const, color: '#CEA279', marginBottom: '0.5rem'
   }
 
   return (
     <div style={{ maxWidth: '700px' }}>
       <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', fontWeight: 300, color: '#F5F2EE' }}>
+        <h1 style={{ fontFamily: 'Panton, Panton, Georgia, serif', fontSize: '2rem', fontWeight: 300, color: '#F5F0EA' }}>
           Nuevo edificio
         </h1>
-        <p style={{ color: '#6B6B65', fontSize: '0.85rem', marginTop: '0.3rem' }}>
+        <p style={{ color: '#7A9BA8', fontSize: '0.85rem', marginTop: '0.3rem' }}>
           Completá la información básica del proyecto
         </p>
       </div>
@@ -63,7 +63,7 @@ export default function NuevoEdificio() {
         <div>
           <label style={labelStyle}>Nombre del proyecto *</label>
           <input name="nombre" value={form.nombre} onChange={handleChange}
-            placeholder="Ej: SOFIA X" required style={inputStyle} />
+            placeholder="Ej: Cardinal Norte" required style={inputStyle} />
         </div>
 
         <div>
@@ -110,7 +110,7 @@ export default function NuevoEdificio() {
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button type="submit" disabled={loading} style={{
-            background: '#C9A96E', color: '#0A0A0A', padding: '1rem 2.5rem',
+            background: '#CEA279', color: '#0A2D38', padding: '1rem 2.5rem',
             fontSize: '0.78rem', letterSpacing: '0.12em', textTransform: 'uppercase',
             border: 'none', cursor: 'pointer', fontWeight: 500, opacity: loading ? 0.7 : 1
           }}>
@@ -118,8 +118,8 @@ export default function NuevoEdificio() {
           </button>
           <a href="/admin/edificios" style={{
             padding: '1rem 2rem', fontSize: '0.78rem', letterSpacing: '0.12em',
-            textTransform: 'uppercase', border: '1px solid rgba(201,169,110,0.3)',
-            color: '#6B6B65', textDecoration: 'none'
+            textTransform: 'uppercase', border: '1px solid rgba(206,162,121,0.3)',
+            color: '#7A9BA8', textDecoration: 'none'
           }}>
             Cancelar
           </a>

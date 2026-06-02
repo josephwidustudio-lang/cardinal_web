@@ -10,23 +10,23 @@ const TIPO_LABEL: Record<string,string> = {
 }
 const BADGE: Record<string,any> = {
   disponible: { bg:'rgba(45,130,75,0.15)',   color:'#5BC47A', label:'Disponible' },
-  reservado:  { bg:'rgba(201,169,110,0.15)', color:'#C9A96E', label:'Reservado'  },
+  reservado:  { bg:'rgba(206,162,121,0.15)', color:'#CEA279', label:'Reservado'  },
   vendido:    { bg:'rgba(180,60,60,0.12)',   color:'#E07070', label:'Vendido'    },
 }
 const inputStyle = {
-  background:'transparent', color:'#F5F2EE', fontSize:'0.85rem',
+  background:'transparent', color:'#F5F0EA', fontSize:'0.85rem',
   padding:'0.4rem 0.6rem', outline:'none', fontFamily:'system-ui,sans-serif',
-  border:'1px solid rgba(201,169,110,0.3)', width:'100%'
+  border:'1px solid rgba(206,162,121,0.3)', width:'100%'
 }
 const formInputStyle = {
-  width:'100%', background:'transparent', color:'#F5F2EE',
+  width:'100%', background:'transparent', color:'#F5F0EA',
   fontSize:'0.85rem', padding:'0.6rem 0', outline:'none',
-  border:'none', borderBottom:'1px solid rgba(201,169,110,0.25)',
+  border:'none', borderBottom:'1px solid rgba(206,162,121,0.25)',
   fontFamily:'system-ui,sans-serif'
 }
 const labelStyle = {
   display:'block', fontSize:'0.6rem', letterSpacing:'0.2em',
-  textTransform:'uppercase' as const, color:'#C9A96E', marginBottom:'0.3rem'
+  textTransform:'uppercase' as const, color:'#CEA279', marginBottom:'0.3rem'
 }
 
 export default function UnidadesPage() {
@@ -131,22 +131,22 @@ export default function UnidadesPage() {
     cargarDatos()
   }
 
-  if (loading) return <div style={{ color:'#6B6B65', padding:'3rem' }}>Cargando...</div>
+  if (loading) return <div style={{ color:'#7A9BA8', padding:'3rem' }}>Cargando...</div>
 
   return (
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}>
         <div>
-          <Link href="/admin/edificios" style={{ fontSize:'0.72rem', color:'#6B6B65', textDecoration:'none' }}>← Edificios</Link>
-          <h1 style={{ fontFamily:'Georgia, serif', fontSize:'2rem', fontWeight:300, color:'#F5F2EE', marginTop:'0.3rem' }}>
+          <Link href="/admin/edificios" style={{ fontSize:'0.72rem', color:'#7A9BA8', textDecoration:'none' }}>← Edificios</Link>
+          <h1 style={{ fontFamily:'Panton, Panton, Georgia, serif', fontSize:'2rem', fontWeight:300, color:'#F5F0EA', marginTop:'0.3rem' }}>
             {edificio?.nombre} — Unidades
           </h1>
-          <p style={{ color:'#6B6B65', fontSize:'0.85rem' }}>
+          <p style={{ color:'#7A9BA8', fontSize:'0.85rem' }}>
             {unidades.length} unidades · {unidades.filter(u=>u.estado==='disponible').length} disponibles
           </p>
         </div>
         <button onClick={() => setShowForm(!showForm)} style={{
-          background:'#C9A96E', color:'#0A0A0A', padding:'0.8rem 1.8rem',
+          background:'#CEA279', color:'#0A2D38', padding:'0.8rem 1.8rem',
           fontSize:'0.78rem', letterSpacing:'0.12em', textTransform:'uppercase',
           border:'none', cursor:'pointer', fontWeight:500
         }}>
@@ -155,8 +155,8 @@ export default function UnidadesPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} style={{ background:'#1C1C1C', padding:'2rem', marginBottom:'2rem', border:'1px solid rgba(201,169,110,0.2)' }}>
-          <h3 style={{ fontFamily:'Georgia, serif', fontSize:'1.2rem', fontWeight:300, color:'#F5F2EE', marginBottom:'1.5rem' }}>Nueva unidad</h3>
+        <form onSubmit={handleSubmit} style={{ background:'#0D3542', padding:'2rem', marginBottom:'2rem', border:'1px solid rgba(206,162,121,0.2)' }}>
+          <h3 style={{ fontFamily:'Panton, Panton, Georgia, serif', fontSize:'1.2rem', fontWeight:300, color:'#F5F0EA', marginBottom:'1.5rem' }}>Nueva unidad</h3>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'1.5rem', marginBottom:'1.5rem' }}>
             <div><label style={labelStyle}>Código *</label>
               <input value={form.codigo} onChange={e=>setForm({...form,codigo:e.target.value})} placeholder="101" required style={formInputStyle} /></div>
@@ -185,7 +185,7 @@ export default function UnidadesPage() {
             </select>
           </div>
           <button type="submit" disabled={saving} style={{
-            background:'#C9A96E', color:'#0A0A0A', padding:'0.8rem 2rem',
+            background:'#CEA279', color:'#0A2D38', padding:'0.8rem 2rem',
             fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase',
             border:'none', cursor:'pointer', fontWeight:500
           }}>{saving ? 'Guardando...' : 'Guardar unidad'}</button>
@@ -193,7 +193,7 @@ export default function UnidadesPage() {
       )}
 
       {unidades.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'4rem', border:'1px dashed rgba(201,169,110,0.2)', color:'#6B6B65' }}>
+        <div style={{ textAlign:'center', padding:'4rem', border:'1px dashed rgba(206,162,121,0.2)', color:'#7A9BA8' }}>
           No hay unidades cargadas. Agrega la primera.
         </div>
       ) : (
@@ -204,7 +204,7 @@ export default function UnidadesPage() {
                 <th key={h} style={{
                   textAlign:'left', padding:'0.8rem 0.8rem',
                   fontSize:'0.6rem', letterSpacing:'0.2em', textTransform:'uppercase',
-                  color:'#6B6B65', borderBottom:'1px solid rgba(201,169,110,0.1)'
+                  color:'#7A9BA8', borderBottom:'1px solid rgba(206,162,121,0.1)'
                 }}>{h}</th>
               ))}
             </tr>
@@ -232,29 +232,29 @@ export default function UnidadesPage() {
                         <option value="vendido">🔴 Vendido</option>
                       </select>
                     </td>
-                    <td style={{ padding:'0.6rem 0.8rem', color:'#6B6B65', fontSize:'0.72rem' }}>—</td>
+                    <td style={{ padding:'0.6rem 0.8rem', color:'#7A9BA8', fontSize:'0.72rem' }}>—</td>
                     <td style={{ padding:'0.6rem 0.8rem' }}>
                       <div style={{ display:'flex', gap:'0.5rem' }}>
                         <button onClick={() => saveEdit(u.id)} disabled={saving} style={{
-                          background:'#5BC47A', color:'#0A0A0A', border:'none',
+                          background:'#5BC47A', color:'#0A2D38', border:'none',
                           padding:'0.4rem 0.8rem', fontSize:'0.65rem', cursor:'pointer', fontWeight:500
                         }}>{saving ? '...' : '✓'}</button>
                         <button onClick={() => setEditingId(null)} style={{
                           background:'transparent', border:'1px solid rgba(255,255,255,0.1)',
-                          color:'#6B6B65', padding:'0.4rem 0.8rem', fontSize:'0.65rem', cursor:'pointer'
+                          color:'#7A9BA8', padding:'0.4rem 0.8rem', fontSize:'0.65rem', cursor:'pointer'
                         }}>✕</button>
                       </div>
                     </td>
                   </>
                 ) : (
                   <>
-                    <td style={{ padding:'0.8rem', color:'#F5F2EE', fontWeight:500 }}>{u.codigo}</td>
-                    <td style={{ padding:'0.8rem', color:'#C8C8C0' }}>{TIPO_LABEL[u.tipo] ?? u.tipo}</td>
-                    <td style={{ padding:'0.8rem', color:'#C8C8C0' }}>{u.piso ?? '—'}</td>
-                    <td style={{ padding:'0.8rem', color:'#C8C8C0' }}>{u.m2 ? `${u.m2}m²` : '—'}</td>
-                    <td style={{ padding:'0.8rem', color:'#C8C8C0' }}>{u.dormitorios ?? '—'}</td>
-                    <td style={{ padding:'0.8rem', color:'#C8C8C0' }}>{u.banos ?? '—'}</td>
-                    <td style={{ padding:'0.8rem', color:'#F5F2EE' }}>{u.precio_texto ?? '—'}</td>
+                    <td style={{ padding:'0.8rem', color:'#F5F0EA', fontWeight:500 }}>{u.codigo}</td>
+                    <td style={{ padding:'0.8rem', color:'#A8C4CE' }}>{TIPO_LABEL[u.tipo] ?? u.tipo}</td>
+                    <td style={{ padding:'0.8rem', color:'#A8C4CE' }}>{u.piso ?? '—'}</td>
+                    <td style={{ padding:'0.8rem', color:'#A8C4CE' }}>{u.m2 ? `${u.m2}m²` : '—'}</td>
+                    <td style={{ padding:'0.8rem', color:'#A8C4CE' }}>{u.dormitorios ?? '—'}</td>
+                    <td style={{ padding:'0.8rem', color:'#A8C4CE' }}>{u.banos ?? '—'}</td>
+                    <td style={{ padding:'0.8rem', color:'#F5F0EA' }}>{u.precio_texto ?? '—'}</td>
                     <td style={{ padding:'0.8rem' }}>
                       <select value={u.estado} onChange={e => cambiarEstado(u.id, e.target.value)} style={{
                         background: BADGE[u.estado]?.bg, color: BADGE[u.estado]?.color,
@@ -273,7 +273,7 @@ export default function UnidadesPage() {
                         {u.imagen_axo ? (
                           <img src={u.imagen_axo} alt="axo" style={{ width:'40px', height:'40px', objectFit:'cover', display:'block' }} />
                         ) : (
-                          <span style={{ fontSize:'0.6rem', color:'#6B6B65', whiteSpace:'nowrap' }}>
+                          <span style={{ fontSize:'0.6rem', color:'#7A9BA8', whiteSpace:'nowrap' }}>
                             {uploading === u.id ? 'Subiendo...' : '+ Subir'}
                           </span>
                         )}
@@ -285,8 +285,8 @@ export default function UnidadesPage() {
                     <td style={{ padding:'0.8rem' }}>
                       <div style={{ display:'flex', gap:'0.5rem' }}>
                         <button onClick={() => startEdit(u)} style={{
-                          background:'transparent', border:'1px solid rgba(201,169,110,0.3)',
-                          color:'#C9A96E', padding:'0.3rem 0.7rem', fontSize:'0.65rem', cursor:'pointer'
+                          background:'transparent', border:'1px solid rgba(206,162,121,0.3)',
+                          color:'#CEA279', padding:'0.3rem 0.7rem', fontSize:'0.65rem', cursor:'pointer'
                         }}>Editar</button>
                         <button onClick={() => eliminarUnidad(u.id)} style={{
                           background:'transparent', border:'1px solid rgba(224,112,112,0.3)',

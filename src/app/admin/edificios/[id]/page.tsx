@@ -88,34 +88,34 @@ export default function EditarEdificio() {
   }
 
   const inputStyle = {
-    width: '100%', background: 'transparent', color: '#F5F2EE',
+    width: '100%', background: 'transparent', color: '#F5F0EA',
     fontSize: '0.9rem', padding: '0.75rem 0', outline: 'none',
-    border: 'none', borderBottom: '1px solid rgba(201,169,110,0.25)',
+    border: 'none', borderBottom: '1px solid rgba(206,162,121,0.25)',
     fontFamily: 'system-ui, sans-serif', marginBottom: '1.5rem'
   }
   const labelStyle = {
     display: 'block', fontSize: '0.65rem', letterSpacing: '0.2em',
-    textTransform: 'uppercase' as const, color: '#C9A96E', marginBottom: '0.5rem'
+    textTransform: 'uppercase' as const, color: '#CEA279', marginBottom: '0.5rem'
   }
 
-  if (loading) return <div style={{ color: '#6B6B65', padding: '3rem' }}>Cargando...</div>
+  if (loading) return <div style={{ color: '#7A9BA8', padding: '3rem' }}>Cargando...</div>
 
   return (
     <div style={{ maxWidth: '800px' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <Link href="/admin/edificios" style={{ fontSize: '0.72rem', color: '#6B6B65', textDecoration: 'none' }}>← Edificios</Link>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', fontWeight: 300, color: '#F5F2EE', marginTop: '0.3rem' }}>
+        <Link href="/admin/edificios" style={{ fontSize: '0.72rem', color: '#7A9BA8', textDecoration: 'none' }}>← Edificios</Link>
+        <h1 style={{ fontFamily: 'Panton, Panton, Georgia, serif', fontSize: '2rem', fontWeight: 300, color: '#F5F0EA', marginTop: '0.3rem' }}>
           Editar — {form.nombre}
         </h1>
       </div>
 
-      <div style={{ display: 'flex', marginBottom: '2rem', borderBottom: '1px solid rgba(201,169,110,0.15)' }}>
+      <div style={{ display: 'flex', marginBottom: '2rem', borderBottom: '1px solid rgba(206,162,121,0.15)' }}>
         {['Información', 'Imágenes', 'Tour 360°'].map((tab, i) => (
           <button key={tab} onClick={() => setActiveTab(i)} style={{
             background: 'transparent', border: 'none', padding: '0.8rem 1.5rem',
             fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: activeTab === i ? '#C9A96E' : '#6B6B65',
-            borderBottom: activeTab === i ? '2px solid #C9A96E' : '2px solid transparent',
+            color: activeTab === i ? '#CEA279' : '#7A9BA8',
+            borderBottom: activeTab === i ? '2px solid #CEA279' : '2px solid transparent',
             cursor: 'pointer', marginBottom: '-1px'
           }}>{tab}</button>
         ))}
@@ -150,7 +150,7 @@ export default function EditarEdificio() {
           <label style={labelStyle}>Orden en home</label>
           <input type="number" value={form.orden} onChange={e => setForm({...form, orden: parseInt(e.target.value)})} style={inputStyle} />
           <button type="submit" disabled={saving} style={{
-            background: '#C9A96E', color: '#0A0A0A', padding: '1rem 2.5rem',
+            background: '#CEA279', color: '#0A2D38', padding: '1rem 2.5rem',
             fontSize: '0.78rem', letterSpacing: '0.12em', textTransform: 'uppercase',
             border: 'none', cursor: 'pointer', fontWeight: 500
           }}>{saving ? 'Guardando...' : 'Guardar cambios'}</button>
@@ -165,10 +165,10 @@ export default function EditarEdificio() {
               <img src={form.imagen_principal} alt="Principal" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', marginBottom: '1rem', display: 'block' }} />
             )}
             <label style={{
-              display: 'inline-block', background: '#1C1C1C',
-              border: '1px dashed rgba(201,169,110,0.3)',
+              display: 'inline-block', background: '#0D3542',
+              border: '1px dashed rgba(206,162,121,0.3)',
               padding: '1rem 2rem', cursor: 'pointer',
-              fontSize: '0.78rem', color: '#C9A96E', letterSpacing: '0.1em'
+              fontSize: '0.78rem', color: '#CEA279', letterSpacing: '0.1em'
             }}>
               {uploading ? 'Subiendo...' : '+ Subir imagen principal'}
               <input type="file" accept="image/*" onChange={handleImagenPrincipal} style={{ display: 'none' }} disabled={uploading} />
@@ -189,10 +189,10 @@ export default function EditarEdificio() {
               ))}
             </div>
             <label style={{
-              display: 'inline-block', background: '#1C1C1C',
-              border: '1px dashed rgba(201,169,110,0.3)',
+              display: 'inline-block', background: '#0D3542',
+              border: '1px dashed rgba(206,162,121,0.3)',
               padding: '1rem 2rem', cursor: 'pointer',
-              fontSize: '0.78rem', color: '#C9A96E', letterSpacing: '0.1em'
+              fontSize: '0.78rem', color: '#CEA279', letterSpacing: '0.1em'
             }}>
               {uploading ? 'Subiendo...' : '+ Agregar imágenes a galería'}
               <input type="file" accept="image/*" multiple onChange={handleGaleria} style={{ display: 'none' }} disabled={uploading} />
@@ -206,14 +206,14 @@ export default function EditarEdificio() {
           <label style={labelStyle}>URL del tour 360° (embed)</label>
           <input value={form.tour_360} onChange={e => setForm({...form, tour_360: e.target.value})}
             placeholder="Ej: https://kuula.co/share/..." style={inputStyle} />
-          <p style={{ fontSize: '0.78rem', color: '#6B6B65', marginBottom: '2rem' }}>
+          <p style={{ fontSize: '0.78rem', color: '#7A9BA8', marginBottom: '2rem' }}>
             Podés usar Kuula, Matterport o cualquier servicio con link embed.
           </p>
           {form.tour_360 && (
             <iframe src={form.tour_360} style={{ width: '100%', height: '400px', border: 'none', marginBottom: '1.5rem' }} />
           )}
           <button onClick={handleSave} style={{
-            background: '#C9A96E', color: '#0A0A0A', padding: '1rem 2.5rem',
+            background: '#CEA279', color: '#0A2D38', padding: '1rem 2.5rem',
             fontSize: '0.78rem', letterSpacing: '0.12em', textTransform: 'uppercase',
             border: 'none', cursor: 'pointer', fontWeight: 500
           }}>Guardar URL</button>

@@ -25,11 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (checking) {
     return (
       <div style={{
-        background: '#0A0A0A', minHeight: '100vh',
+        background: '#0A2D38', minHeight: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.3em', color: '#C9A96E' }}>
-          SOFIA
+        <div style={{ fontFamily: 'Panton, Georgia, serif', fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.3em', color: '#CEA279' }}>
+          CARDINAL
         </div>
       </div>
     )
@@ -44,17 +44,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0F0F0F' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0A2D38' }}>
       <aside style={{
-        width: '240px', background: '#111111',
-        borderRight: '1px solid rgba(201,169,110,0.1)',
+        width: '240px', background: '#0D3542',
+        borderRight: '1px solid rgba(206,162,121,0.15)',
         position: 'fixed', top: 0, left: 0, bottom: 0,
         display: 'flex', flexDirection: 'column'
       }}>
         {/* Logo */}
-        <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(201,169,110,0.1)' }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.3em', color: '#F5F2EE' }}>SOFIA</div>
-          <div style={{ fontSize: '0.6rem', color: '#C9A96E', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '0.3rem' }}>Panel de gestión</div>
+        <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(206,162,121,0.15)' }}>
+          <div style={{ fontFamily: 'Panton, Georgia, serif', fontSize: '1.4rem', fontWeight: 300, letterSpacing: '0.35em', color: '#F5F0EA' }}>CARDINAL</div>
+          <div style={{ fontSize: '0.6rem', color: '#CEA279', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '0.3rem' }}>Panel de gestión</div>
         </div>
 
         {/* Nav */}
@@ -65,10 +65,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link key={item.href} href={item.href} style={{
                 display: 'flex', alignItems: 'center', gap: '0.8rem',
                 padding: '0.85rem 1.5rem', fontSize: '0.82rem',
-                color: isActive ? '#C9A96E' : '#6B6B65',
+                color: isActive ? '#CEA279' : '#7A9BA8',
                 textDecoration: 'none',
-                borderLeft: isActive ? '2px solid #C9A96E' : '2px solid transparent',
-                background: isActive ? 'rgba(201,169,110,0.05)' : 'transparent',
+                borderLeft: isActive ? '2px solid #CEA279' : '2px solid transparent',
+                background: isActive ? 'rgba(206,162,121,0.08)' : 'transparent',
+                fontFamily: 'Panton, system-ui, sans-serif',
+                letterSpacing: '0.05em',
               }}>
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
@@ -78,20 +80,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer */}
-        <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(201,169,110,0.1)' }}>
+        <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(206,162,121,0.15)' }}>
           {user && (
-            <p style={{ fontSize: '0.68rem', color: '#6B6B65', marginBottom: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontSize: '0.68rem', color: '#7A9BA8', marginBottom: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user.email}
             </p>
           )}
-          <Link href="/" style={{ fontSize: '0.72rem', color: '#6B6B65', textDecoration: 'none', display: 'block', marginBottom: '0.8rem' }}>
+          <Link href="/" style={{ fontSize: '0.72rem', color: '#7A9BA8', textDecoration: 'none', display: 'block', marginBottom: '0.8rem' }}>
             ← Ver web pública
           </Link>
           <LogoutButton />
         </div>
       </aside>
 
-      <main style={{ marginLeft: '240px', flex: 1, padding: '2.5rem' }}>
+      <main style={{ marginLeft: '240px', flex: 1, padding: '2.5rem', background: '#0A2D38' }}>
         {children}
       </main>
     </div>

@@ -36,7 +36,7 @@ export default function AxoPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return <div style={{ background: '#0A0A0A', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: '#C9A96E', fontFamily: 'Georgia, serif', fontSize: '1.5rem', letterSpacing: '0.3em' }}>SOFIA</span>
+      <span style={{ color: '#C9A96E', fontFamily: 'Georgia, serif', fontSize: '1.5rem', letterSpacing: '0.3em' }}>CARDINAL</span>
     </div>
   }
 
@@ -48,7 +48,7 @@ export default function AxoPage({ params }: { params: { id: string } }) {
         padding: '1.2rem 3rem', background: 'rgba(10,10,10,0.95)',
         backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(201,169,110,0.1)'
       }}>
-        <Link href="/" style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.3em', color: '#F5F2EE', textDecoration: 'none' }}>SOFIA</Link>
+        <Link href="/" style={{ fontFamily: 'Panton, Georgia, serif', fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.3em', color: '#F5F0EA', textDecoration: 'none' }}>CARDINAL</Link>
         <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: 300, color: '#C9A96E' }}>{edificio?.nombre} - Planta interactiva</span>
         <Link href={`/edificio/${params.id}`} style={{ fontSize: '0.72rem', color: '#6B6B65', textDecoration: 'none' }}>Volver al edificio</Link>
       </nav>
@@ -127,7 +127,7 @@ export default function AxoPage({ params }: { params: { id: string } }) {
                       style={{ display: 'block', textAlign: 'center', background: '#C9A96E', color: '#0A0A0A', padding: '1rem', fontSize: '0.82rem', fontWeight: 500, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', marginBottom: '0.8rem' }}>
                       Consultar por WhatsApp
                     </a>
-                    <a href="mailto:info@sofiadesarrollos.com.ar"
+                    <a href="mailto:info@cardinal.com.ar"
                       style={{ display: 'block', textAlign: 'center', border: '1px solid rgba(201,169,110,0.3)', color: '#C9A96E', padding: '1rem', fontSize: '0.82rem', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
                       Enviar email
                     </a>

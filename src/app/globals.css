@@ -96,16 +96,16 @@ body { background: var(--black); color: var(--cream); font-family: 'Panton', sys
     background: var(--gold); flex-shrink: 0;
   }
 
-  .input-sofia {
+  .input-cardinal {
     width: 100%; background: transparent; color: var(--cream);
     font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300;
     padding: 0.75rem 0; outline: none;
     border: 0; border-bottom: 1px solid rgba(201,169,110,0.25);
     transition: border-color 0.2s;
   }
-  .input-sofia:focus { border-bottom-color: var(--gold); }
-  .input-sofia::placeholder { color: var(--midgray); }
-  .input-sofia option { background: #1C1C1C; color: var(--cream); }
+  .input-cardinal:focus { border-bottom-color: var(--gold); }
+  .input-cardinal::placeholder { color: var(--midgray); }
+  .input-cardinal option { background: #1C1C1C; color: var(--cream); }
 
   .card-edificio {
     position: relative; overflow: hidden; cursor: pointer;
