@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import ChatWidget from '@/components/layout/ChatWidget'
 
 const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_logotipo.svg'
 const RENDER = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_render.jpg'
@@ -158,6 +159,7 @@ export default function ProyectoPage() {
           </div>
         </div>
       </div>
+      <ChatWidget mode="floating" alwaysShow />
     </main>
   )
 }

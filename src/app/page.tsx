@@ -100,13 +100,9 @@ export default function Home() {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}>
           <source src={VIDEO} type="video/mp4" />
         </video>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,53,66,0.45)' }} />
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', marginTop: '60vh' }}>
-          <a href="#unidades" style={{
-            background: '#CEA279', color: '#fff', padding: '1.2rem 3rem',
-            fontSize: '0.82rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-            textDecoration: 'none', fontWeight: 500, display: 'inline-block'
-          }}>Ver unidades</a>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,53,66,0.5)' }} />
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: '100%', padding: '0 1.5rem' }}>
+          <ChatWidget mode="hero" />
         </div>
         <div style={{ position: 'absolute', bottom: '6rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: '1px', height: '50px', background: 'linear-gradient(to bottom, #CEA279, transparent)' }} />
@@ -328,16 +324,8 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* CHAT IA */}
-      <ChatWidget />
-
-      {/* WA FLOAT */}
-      <a href={"https://wa.me/" + SITE.wa} target="_blank" style={{
-        position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 200,
-        width: '56px', height: '56px', borderRadius: '50%',
-        background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.5rem', textDecoration: 'none', boxShadow: '0 4px 20px rgba(37,211,102,0.3)'
-      }}>💬</a>
+      {/* CHAT FLOTANTE (aparece al hacer scroll) */}
+      <ChatWidget mode="floating" />
 
     </main>
   )
