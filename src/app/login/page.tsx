@@ -19,7 +19,7 @@ async function handleLogin(e: any) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('Email o contraseña incorrectos')
+      setError(error.message)
       setLoading(false)
       return
     }
