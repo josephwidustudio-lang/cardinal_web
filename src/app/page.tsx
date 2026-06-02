@@ -380,6 +380,7 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
                 aspectRatio: layout.ratio,
                 overflow: 'hidden',
                 cursor: 'zoom-in',
+                position: 'relative',
                 opacity: isVisible ? 1 : 0,
                 animation: isVisible ? `fadeUp 0.6s ease forwards` : 'none',
                 animationDelay: `${(i % 3) * 0.1}s`,
@@ -387,13 +388,24 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
             >
               <img
                 src={img.url}
-                alt={`Cardinal ${i + 1}`}
+                alt={img.titulo ?? `Cardinal ${i + 1}`}
                 style={{
                   width: '100%', height: '100%', objectFit: 'cover', display: 'block',
                   transform: hoverId === img.id ? 'scale(1.06)' : 'scale(1)',
                   transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 }}
               />
+              {img.titulo && (
+                <div style={{
+                  position: 'absolute', bottom: 0, right: 0,
+                  background: 'rgba(10,45,56,0.82)', backdropFilter: 'blur(6px)',
+                  padding: '0.35rem 0.8rem',
+                  fontSize: '0.6rem', color: '#CEA279',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  opacity: hoverId === img.id ? 1 : 0.85,
+                  transition: 'opacity 0.3s ease',
+                }}>{img.titulo}</div>
+              )}
             </div>
           )
         })}
