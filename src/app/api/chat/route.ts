@@ -99,21 +99,20 @@ export async function POST(req: NextRequest) {
     })
     console.log('model created')
 
-    // Gemini requiere que el historial empiece con 'user', ignoramos mensajes iniciales del asistente
-    const historyRaw = messages.slice(0, -1).filter((_: any, i: number, arr: any[]) => {
-      // Saltear mensajes de 'assistant' al inicio del array
-      const firstUserIdx = arr.findIndex((m: any) => m.role === 'user')
-      return i >= firstUserIdx
-    })
-    const history = historyRaw.map((m: any) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
+    // Construir contexto de conversación como texto plano
+    const conversacion = messages.slice(0, -1)
+      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+      .map((m: any) => `${m.role === 'user' ? 'Usuario' : 'Asesor'}: ${m.content}`)
+      .join('\n')
 
-    const chat = model.startChat({ history })
-    console.log('chat started, sending message...')
     const lastMessage = messages[messages.length - 1].content
-    const result = await chat.sendMessage(lastMessage)
+    const mensajeCompleto = conversacion
+      ? `Historial de conversación:\n${conversacion}\n\nUsuario: ${lastMessage}`
+      : lastMessage
+
+    const chat = model.startChat({ history: [] })
+    console.log('chat started, sending message...')
+    const result = await chat.sendMessage(mensajeCompleto)
     console.log('message sent OK')
     const text = result.response.text()
 
