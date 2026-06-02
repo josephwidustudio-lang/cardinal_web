@@ -402,21 +402,26 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
         </h2>
       </div>
 
-      {/* Mosaic Grid */}
+      {/* Mosaic Grid - Perfect Rectangle */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gridAutoRows: '250px',
-        gridAutoFlow: 'dense',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridAutoRows: '220px',
         gap: '3px',
         padding: '0 3px',
-        maxWidth: '1400px',
+        maxWidth: '1000px',
         margin: '0 auto'
       }}>
         {shown.map((img, i) => {
           const isVisible = visibleItems.has(i)
-          // Patrón de grid items: algunos ocupan 2x2 para efecto de mosaico
-          const isBig = i % 4 === 0 || i % 4 === 2
+          // Patrón para 6 items en rectángulo perfecto:
+          // [2x2, 1x2, 1x2] + [1x1, 1x1, 2x1]
+          let colSpan = 1, rowSpan = 1
+          if (i === 0) { colSpan = 2; rowSpan = 2 } // Grande arriba izq
+          else if (i === 1 || i === 2) { colSpan = 1; rowSpan = 2 } // 2 medianas lado derecho
+          else if (i === 3 || i === 4) { colSpan = 1; rowSpan = 1 } // 2 pequeñas abajo
+          else if (i === 5) { colSpan = 2; rowSpan = 1 } // 1 mediana abajo derecha
+
           return (
             <div
               key={img.id}
@@ -426,8 +431,8 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
               onMouseEnter={() => setHoverId(img.id)}
               onMouseLeave={() => setHoverId(null)}
               style={{
-                gridColumn: isBig ? 'span 2' : 'span 1',
-                gridRow: isBig ? 'span 2' : 'span 1',
+                gridColumn: `span ${colSpan}`,
+                gridRow: `span ${rowSpan}`,
                 overflow: 'hidden',
                 cursor: 'zoom-in',
                 position: 'relative',
