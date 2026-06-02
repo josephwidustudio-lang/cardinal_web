@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { SITE, COLORS } from '@/lib/config'
 import Link from 'next/link'
@@ -212,30 +212,7 @@ export default function Home() {
 
       {/* GALERIA */}
       {imagenes.length > 0 && (
-        <section id="galeria" style={{ padding: '8rem 0', background: '#0D3542' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem', padding: '0 2rem' }}>
-            <p style={{ fontSize: '0.68rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-              <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
-              Galeria
-              <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
-            </p>
-            <h2 style={{ fontFamily: "Panton, system-ui, sans-serif", fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 300, color: '#F5F0EA' }}>
-              El proyecto en detalle
-            </h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px' }}>
-            {imagenes.map((img, i) => (
-              <div key={img.id} style={{
-                aspectRatio: i === 0 ? '16/9' : '4/3',
-                gridColumn: i === 0 ? 'span 3' : 'span 1',
-                overflow: 'hidden'
-              }}>
-                <img src={img.url} alt={"Cardinal " + (i + 1)}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              </div>
-            ))}
-          </div>
-        </section>
+        <GaleriaSection imagenes={imagenes} />
       )}
 
       {/* NOSOTROS */}
@@ -324,5 +301,156 @@ export default function Home() {
       <ChatWidget mode="floating" />
 
     </main>
+  )
+}
+
+// ── GALERIA SECTION ──────────────────────────────────────────────────────────
+const GRID_LAYOUT = [
+  { col: 'span 2', ratio: '16/9' },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 2', ratio: '16/9' },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 1', ratio: '4/3'  },
+  { col: 'span 1', ratio: '4/3'  },
+]
+
+function GaleriaSection({ imagenes }: { imagenes: any[] }) {
+  const PAGE = 6
+  const [visible, setVisible] = useState(PAGE)
+  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [hoverId, setHoverId] = useState<string | null>(null)
+  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) {
+          const idx = Number((e.target as HTMLElement).dataset.idx)
+          setVisibleItems(prev => { const s = new Set(prev); s.add(idx); return s })
+        }
+      }),
+      { threshold: 0.15 }
+    )
+    itemRefs.current.forEach(el => el && obs.observe(el))
+    return () => obs.disconnect()
+  }, [visible])
+
+  const shown = imagenes.slice(0, visible)
+
+  return (
+    <section id="galeria" style={{ padding: '8rem 0', background: '#0D3542' }}>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '4rem', padding: '0 2rem' }}>
+        <p style={{ fontSize: '0.68rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+          <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
+          Galería
+          <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
+        </p>
+        <h2 style={{ fontFamily: 'Panton, system-ui, sans-serif', fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 300, color: '#F5F0EA' }}>
+          El proyecto en detalle
+        </h2>
+      </div>
+
+      {/* Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px', padding: '0 3px' }}>
+        {shown.map((img, i) => {
+          const layout = GRID_LAYOUT[i % GRID_LAYOUT.length]
+          const isVisible = visibleItems.has(i)
+          return (
+            <div
+              key={img.id}
+              ref={el => { itemRefs.current[i] = el }}
+              data-idx={i}
+              onClick={() => setLightbox(img.url)}
+              onMouseEnter={() => setHoverId(img.id)}
+              onMouseLeave={() => setHoverId(null)}
+              style={{
+                gridColumn: layout.col,
+                aspectRatio: layout.ratio,
+                overflow: 'hidden',
+                cursor: 'zoom-in',
+                opacity: isVisible ? 1 : 0,
+                animation: isVisible ? `fadeUp 0.6s ease forwards` : 'none',
+                animationDelay: `${(i % 3) * 0.1}s`,
+              }}
+            >
+              <img
+                src={img.url}
+                alt={`Cardinal ${i + 1}`}
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                  transform: hoverId === img.id ? 'scale(1.06)' : 'scale(1)',
+                  transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Cargar más */}
+      {visible < imagenes.length && (
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+          <button
+            onClick={() => setVisible(v => v + PAGE)}
+            style={{
+              border: '1px solid rgba(206,162,121,0.4)', background: 'transparent',
+              color: '#CEA279', padding: '1rem 3rem',
+              fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+              cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(206,162,121,0.1)' }}
+            onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = 'transparent' }}
+          >
+            Ver más fotos
+          </button>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(10,45,56,0.95)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'zoom-out', animation: 'fadeUp 0.3s ease',
+          }}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            style={{
+              position: 'absolute', top: '2rem', right: '2rem',
+              background: 'transparent', border: '1px solid rgba(206,162,121,0.3)',
+              color: '#CEA279', width: '44px', height: '44px',
+              fontSize: '1.2rem', cursor: 'pointer',
+            }}
+          >✕</button>
+          <img
+            src={lightbox}
+            alt="Cardinal"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: '90vw', maxHeight: '90vh',
+              objectFit: 'contain', display: 'block',
+              cursor: 'default',
+            }}
+          />
+        </div>
+      )}
+    </section>
   )
 }
