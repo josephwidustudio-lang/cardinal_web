@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
+// client initialized per-request inside POST handler
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -80,19 +80,24 @@ UNIDADES DISPONIBLES:`
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY
-    console.log('GEMINI_API_KEY present:', !!apiKey, 'length:', apiKey?.length)
+    const apiKey = process.env.GEMINI_API_KEY ?? ''
+    console.log('GEMINI_API_KEY present:', !!apiKey, 'length:', apiKey.length)
 
     const { messages } = await req.json()
+    console.log('messages received:', messages.length)
 
-    // Obtener datos reales de unidades
     const unidadesInfo = await getUnidadesInfo()
+    console.log('unidades fetched OK')
+
     const systemPrompt = BASE_PROMPT + unidadesInfo
+    const genAI = new GoogleGenerativeAI(apiKey)
+    console.log('genAI created')
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
       systemInstruction: systemPrompt,
     })
+    console.log('model created')
 
     const history = messages.slice(0, -1).map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -100,8 +105,10 @@ export async function POST(req: NextRequest) {
     }))
 
     const chat = model.startChat({ history })
+    console.log('chat started, sending message...')
     const lastMessage = messages[messages.length - 1].content
     const result = await chat.sendMessage(lastMessage)
+    console.log('message sent OK')
     const text = result.response.text()
 
     return NextResponse.json({ message: text })
