@@ -80,6 +80,9 @@ UNIDADES DISPONIBLES:`
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.GEMINI_API_KEY
+    console.log('GEMINI_API_KEY present:', !!apiKey, 'length:', apiKey?.length)
+
     const { messages } = await req.json()
 
     // Obtener datos reales de unidades
