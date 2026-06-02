@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { SITE, COLORS } from '@/lib/config'
 import Link from 'next/link'
@@ -305,17 +305,52 @@ export default function Home() {
 }
 
 // ── GALERIA SECTION ──────────────────────────────────────────────────────────
-const GRID_LAYOUT = [
-  { col: 'span 2', ratio: '16/9' },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 2', ratio: '16/9' },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 1', ratio: '4/3'  },
-  { col: 'span 1', ratio: '4/3'  },
-]
+function buildLayout(n: number) {
+  const result: { col: string; ratio: string }[] = []
+  let remaining = n
+
+  while (remaining > 0) {
+    if (remaining === 1) {
+      result.push({ col: 'span 3', ratio: '21/9' })
+      remaining = 0
+    } else if (remaining === 2) {
+      result.push({ col: 'span 2', ratio: '16/9' }, { col: 'span 1', ratio: '4/3' })
+      remaining = 0
+    } else if (remaining === 3) {
+      result.push(
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' }
+      )
+      remaining = 0
+    } else if (remaining === 4) {
+      result.push(
+        { col: 'span 2', ratio: '16/9' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' }
+      )
+      remaining = 1
+    } else if (remaining === 5) {
+      result.push(
+        { col: 'span 2', ratio: '16/9' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' }
+      )
+      remaining = 1
+    } else if (remaining >= 6) {
+      result.push(
+        { col: 'span 2', ratio: '16/9' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 1', ratio: '4/3' },
+        { col: 'span 2', ratio: '16/9' }
+      )
+      remaining -= 5
+    }
+  }
+  return result.slice(0, n)
+}
 
 function GaleriaSection({ imagenes }: { imagenes: any[] }) {
   const PAGE = 6
@@ -324,6 +359,9 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
   const [hoverId, setHoverId] = useState<string | null>(null)
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const shown = imagenes.slice(0, visible)
+  const layouts = useMemo(() => buildLayout(shown.length), [shown.length])
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -338,8 +376,6 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
     itemRefs.current.forEach(el => el && obs.observe(el))
     return () => obs.disconnect()
   }, [visible])
-
-  const shown = imagenes.slice(0, visible)
 
   return (
     <section id="galeria" style={{ padding: '8rem 0', background: '#0D3542' }}>
@@ -365,7 +401,7 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
       {/* Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px', padding: '0 3px' }}>
         {shown.map((img, i) => {
-          const layout = GRID_LAYOUT[i % GRID_LAYOUT.length]
+          const layout = layouts[i]
           const isVisible = visibleItems.has(i)
           return (
             <div
