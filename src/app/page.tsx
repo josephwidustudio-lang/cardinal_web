@@ -307,29 +307,30 @@ export default function Home() {
 // ── GALERIA SECTION ──────────────────────────────────────────────────────────
 function buildLayout(n: number) {
   const result: { col: string; ratio: string }[] = []
-  let remaining = n
+  let i = 0
 
-  while (remaining > 0) {
+  while (i < n) {
+    const remaining = n - i
+
     if (remaining === 1) {
       result.push({ col: 'span 3', ratio: '21/9' })
-      remaining = 0
+      i++
     } else if (remaining === 2) {
       result.push({ col: 'span 2', ratio: '16/9' }, { col: 'span 1', ratio: '4/3' })
-      remaining = 0
+      i += 2
     } else if (remaining === 3) {
       result.push(
         { col: 'span 1', ratio: '4/3' },
         { col: 'span 1', ratio: '4/3' },
         { col: 'span 1', ratio: '4/3' }
       )
-      remaining = 0
+      i += 3
     } else if (remaining === 4) {
       result.push(
         { col: 'span 2', ratio: '16/9' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' }
+        { col: 'span 2', ratio: '16/9' }
       )
-      remaining = 1
+      i += 2
     } else if (remaining === 5) {
       result.push(
         { col: 'span 2', ratio: '16/9' },
@@ -337,19 +338,19 @@ function buildLayout(n: number) {
         { col: 'span 1', ratio: '4/3' },
         { col: 'span 1', ratio: '4/3' }
       )
-      remaining = 1
-    } else if (remaining >= 6) {
+      i += 4
+    } else {
+      // remaining >= 6: [2, 1] + [2, 1]
       result.push(
         { col: 'span 2', ratio: '16/9' },
         { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 2', ratio: '16/9' }
+        { col: 'span 2', ratio: '16/9' },
+        { col: 'span 1', ratio: '4/3' }
       )
-      remaining -= 5
+      i += 4
     }
   }
-  return result.slice(0, n)
+  return result
 }
 
 function GaleriaSection({ imagenes }: { imagenes: any[] }) {
