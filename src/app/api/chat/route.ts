@@ -1,8 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-
-// client initialized per-request inside POST handler
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -71,7 +69,6 @@ UNIDADES DISPONIBLES:`
         info += `\n- Unidad ${u.codigo} | Piso ${u.piso ?? '-'} | ${TIPO_LABEL[u.tipo] ?? u.tipo} | ${u.m2 ? u.m2 + ' m2' : '-'} | ${u.precio_texto ?? 'Precio a consultar'}`
       })
     }
-
     return info
   } catch {
     return ''
@@ -80,45 +77,32 @@ UNIDADES DISPONIBLES:`
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY ?? ''
-    console.log('GEMINI_API_KEY present:', !!apiKey, 'length:', apiKey.length)
-
     const { messages } = await req.json()
-    console.log('messages received:', messages.length)
 
     const unidadesInfo = await getUnidadesInfo()
-    console.log('unidades fetched OK')
-
     const systemPrompt = BASE_PROMPT + unidadesInfo
-    const genAI = new GoogleGenerativeAI(apiKey)
-    console.log('genAI created')
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: systemPrompt,
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
+    const historial = messages.map((m: any) => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: m.content,
+    }))
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...historial,
+      ],
+      max_tokens: 300,
+      temperature: 0.7,
     })
-    console.log('model created')
 
-    // Construir contexto de conversación como texto plano
-    const conversacion = messages.slice(0, -1)
-      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
-      .map((m: any) => `${m.role === 'user' ? 'Usuario' : 'Asesor'}: ${m.content}`)
-      .join('\n')
-
-    const lastMessage = messages[messages.length - 1].content
-    const mensajeCompleto = conversacion
-      ? `Historial de conversación:\n${conversacion}\n\nUsuario: ${lastMessage}`
-      : lastMessage
-
-    const chat = model.startChat({ history: [] })
-    console.log('chat started, sending message...')
-    const result = await chat.sendMessage(mensajeCompleto)
-    console.log('message sent OK')
-    const text = result.response.text()
-
+    const text = completion.choices[0]?.message?.content ?? ''
     return NextResponse.json({ message: text })
   } catch (error: any) {
-    console.error('Chat error:', error?.message, error?.status, error?.toString())
+    console.error('Chat error:', error?.message)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
