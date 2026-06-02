@@ -2,7 +2,9 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { SITE, COLORS } from '@/lib/config'
+
+const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_logotipo.svg'
+const VIDEO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/SALAS_VIDEO%20HORIZONTAL%202.mp4'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -11,111 +13,140 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-async function handleLogin(e: any) {
+  async function handleLogin(e: any) {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
     if (error) {
       setError('Email o contraseña incorrectos')
       setLoading(false)
       return
     }
-
     if (data.session) {
       window.location.href = '/admin'
     }
   }
 
-  const inputStyle = {
-    width: '100%', background: 'rgba(255,255,255,0.05)',
-    color: '#F5F2EE', fontSize: '0.9rem', padding: '0.9rem 1rem',
-    outline: 'none', fontFamily: 'system-ui, sans-serif',
-    border: '1px solid rgba(201,169,110,0.2)',
-    transition: 'border-color 0.2s',
-    marginBottom: '1rem'
-  }
-
   return (
     <main style={{
-      background: '#0A0A0A', minHeight: '100vh',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif',
-      backgroundImage: `
-        linear-gradient(to bottom, rgba(10,10,10,0.97), rgba(10,10,10,0.97)),
-        url(${SITE.heroImagen}) center/cover
-      `
+      minHeight: '100vh', display: 'flex',
+      fontFamily: 'Panton, system-ui, sans-serif',
+      background: '#0A2D38',
     }}>
-      <div style={{ width: '100%', maxWidth: '400px', padding: '0 2rem' }}>
+
+      {/* Left — video */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'none' }} className="login-video-panel">
+        <video autoPlay muted loop playsInline
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}>
+          <source src={VIDEO} type="video/mp4" />
+        </video>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,45,56,0.55)' }} />
+        <div style={{ position: 'absolute', bottom: '3rem', left: '3rem' }}>
+          <p style={{ fontSize: '0.68rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#CEA279' }}>
+            Arquitectura que trasciende
+          </p>
+        </div>
+      </div>
+
+      {/* Right — form */}
+      <div style={{
+        width: '100%', maxWidth: '480px', background: '#0D3542',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        padding: '4rem 3.5rem',
+        borderLeft: '1px solid rgba(206,162,121,0.15)',
+      }}>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', fontWeight: 300, letterSpacing: '0.35em', color: '#F5F2EE', marginBottom: '0.5rem' }}>
-            {SITE.nombreCorto}
-          </div>
-          <div style={{ fontSize: '0.65rem', color: '#C9A96E', letterSpacing: '0.25em', textTransform: 'uppercase' }}>
+        <div style={{ marginBottom: '3.5rem' }}>
+          <img src={LOGO} alt="Cardinal" style={{ height: '40px', filter: 'brightness(0) invert(1)', display: 'block', marginBottom: '1rem' }} />
+          <div style={{ width: '30px', height: '1px', background: '#CEA279' }} />
+        </div>
+
+        {/* Titulo */}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <h1 style={{ fontFamily: 'Panton, Georgia, serif', fontSize: '1.8rem', fontWeight: 300, color: '#F5F0EA', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
             Panel de gestión
-          </div>
+          </h1>
+          <p style={{ fontSize: '0.82rem', color: '#7A9BA8', lineHeight: 1.6 }}>
+            Ingresá con tu cuenta para administrar Cardinal.
+          </p>
         </div>
 
         {/* Form */}
-        <div style={{ background: '#111111', padding: '2.5rem', border: '1px solid rgba(201,169,110,0.1)' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 300, color: '#F5F2EE', marginBottom: '0.5rem' }}>
-            Iniciar sesión
-          </h1>
-          <p style={{ fontSize: '0.8rem', color: '#6B6B65', marginBottom: '2rem' }}>
-            Ingresá con tu cuenta para acceder al panel
-          </p>
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '1.8rem' }}>
+            <label style={{ display: 'block', fontSize: '0.62rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '0.6rem' }}>
+              Email
+            </label>
+            <input
+              type="email" value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+              required
+              style={{
+                width: '100%', background: 'transparent', color: '#F5F0EA',
+                fontSize: '0.9rem', padding: '0.75rem 0', outline: 'none',
+                border: 'none', borderBottom: '1px solid rgba(206,162,121,0.3)',
+                fontFamily: 'Panton, system-ui, sans-serif',
+                transition: 'border-color 0.2s',
+              }}
+            />
+          </div>
 
-          <form onSubmit={handleLogin}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A96E', marginBottom: '0.5rem' }}>
-                Email
-              </label>
-              <input
-                type="email" value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                required style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A96E', marginBottom: '0.5rem' }}>
-                Contraseña
-              </label>
-              <input
-                type="password" value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required style={inputStyle}
-              />
-            </div>
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', fontSize: '0.62rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '0.6rem' }}>
+              Contraseña
+            </label>
+            <input
+              type="password" value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              style={{
+                width: '100%', background: 'transparent', color: '#F5F0EA',
+                fontSize: '0.9rem', padding: '0.75rem 0', outline: 'none',
+                border: 'none', borderBottom: '1px solid rgba(206,162,121,0.3)',
+                fontFamily: 'Panton, system-ui, sans-serif',
+                transition: 'border-color 0.2s',
+              }}
+            />
+          </div>
 
-            {error && (
-              <p style={{ color: '#E07070', fontSize: '0.82rem', marginBottom: '1rem' }}>
-                ⚠ {error}
-              </p>
-            )}
+          {error && (
+            <p style={{ color: '#E07070', fontSize: '0.78rem', marginBottom: '1.2rem', letterSpacing: '0.05em' }}>
+              ⚠ {error}
+            </p>
+          )}
 
-            <button type="submit" disabled={loading} style={{
-              width: '100%', background: '#C9A96E', color: '#0A0A0A',
-              padding: '1rem', fontSize: '0.82rem', fontWeight: 500,
-              letterSpacing: '0.15em', textTransform: 'uppercase',
-              border: 'none', cursor: 'pointer',
-              opacity: loading ? 0.7 : 1, marginTop: '0.5rem'
-            }}>
-              {loading ? 'Ingresando...' : 'Ingresar →'}
-            </button>
-          </form>
-        </div>
+          <button type="submit" disabled={loading} style={{
+            width: '100%', background: '#CEA279', color: '#0A2D38',
+            padding: '1rem', fontSize: '0.78rem', fontWeight: 500,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
+            border: 'none', cursor: loading ? 'default' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            fontFamily: 'Panton, system-ui, sans-serif',
+            transition: 'opacity 0.2s',
+          }}>
+            {loading ? 'Ingresando...' : 'Ingresar →'}
+          </button>
+        </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.72rem', color: '#6B6B65' }}>
-          ← <a href="/" style={{ color: '#6B6B65', textDecoration: 'none' }}>Volver a la web</a>
-        </p>
+        <a href="/" style={{
+          display: 'block', marginTop: '2.5rem',
+          fontSize: '0.72rem', color: 'rgba(122,155,168,0.6)',
+          textDecoration: 'none', letterSpacing: '0.1em',
+        }}>
+          ← Volver a la web
+        </a>
 
       </div>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .login-video-panel { display: block !important; }
+        }
+      `}</style>
     </main>
   )
 }
