@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: text })
   } catch (error: any) {
+    console.error('Chat error:', error?.message, error?.status, error?.toString())
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
