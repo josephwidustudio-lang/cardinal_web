@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { SITE, COLORS } from '@/lib/config'
 import Link from 'next/link'
 import NavMobile from '@/components/layout/NavMobile'
+import ChatWidget from '@/components/layout/ChatWidget'
 
 const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_logotipo.svg'
 const VIDEO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/SALAS_VIDEO%20HORIZONTAL%202.mp4'
@@ -326,6 +327,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* CHAT IA */}
+      <ChatWidget />
 
       {/* WA FLOAT */}
       <a href={"https://wa.me/" + SITE.wa} target="_blank" style={{
