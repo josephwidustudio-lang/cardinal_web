@@ -481,22 +481,41 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
       </div>
 
       {/* Cargar más */}
-      {visible < imagenes.length && (
-        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-          <button
-            onClick={() => setVisible(v => v + PAGE)}
-            style={{
-              border: '1px solid rgba(206,162,121,0.4)', background: 'transparent',
-              color: '#CEA279', padding: '1rem 3rem',
-              fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-              cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(206,162,121,0.1)' }}
-            onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = 'transparent' }}
-          >
-            Ver más fotos
-          </button>
+      {/* Buttons */}
+      {(visible < imagenes.length || visible > PAGE) && (
+        <div style={{ textAlign: 'center', marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          {visible > PAGE && (
+            <button
+              onClick={() => setVisible(PAGE)}
+              style={{
+                border: '1px solid rgba(206,162,121,0.4)', background: 'transparent',
+                color: '#CEA279', padding: '1rem 3rem',
+                fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+                cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(206,162,121,0.1)' }}
+              onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = 'transparent' }}
+            >
+              Mostrar menos
+            </button>
+          )}
+          {visible < imagenes.length && (
+            <button
+              onClick={() => setVisible(v => v + PAGE)}
+              style={{
+                border: '1px solid rgba(206,162,121,0.4)', background: 'transparent',
+                color: '#CEA279', padding: '1rem 3rem',
+                fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+                cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = 'rgba(206,162,121,0.1)' }}
+              onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = 'transparent' }}
+            >
+              Ver más fotos
+            </button>
+          )}
         </div>
       )}
 
