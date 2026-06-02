@@ -73,6 +73,7 @@ export default function Home() {
         <img src={LOGO} alt="Cardinal" style={{ height: '36px', filter: 'brightness(0) invert(1)' }} />
         <div className="nav-links-desktop" style={{ display: 'flex', gap: '2.5rem' }}>
           {[
+            { label: 'Proyecto',  href: '/proyecto'  },
             { label: 'Unidades',  href: '#unidades'  },
             { label: 'Galeria',   href: '#galeria'   },
             { label: 'Nosotros',  href: '#nosotros'  },

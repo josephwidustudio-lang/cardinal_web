@@ -38,7 +38,9 @@ export default function NavMobile() {
 
       {/* Links */}
       {[
-        { label: 'Proyecto',  href: '#proyectos' },
+        { label: 'Proyecto',  href: '/proyecto'  },
+        { label: 'Unidades',  href: '#unidades'  },
+        { label: 'Galería',   href: '#galeria'   },
         { label: 'Nosotros',  href: '#nosotros'  },
         { label: 'Contacto',  href: '#contacto'  },
       ].map(link => (
