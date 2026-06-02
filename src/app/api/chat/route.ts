@@ -21,7 +21,7 @@ INFORMACIÓN DEL PROYECTO:
 - Precio: a consultar (derivar a WhatsApp o email)
 
 CONTACTO:
-- WhatsApp: +54 9 342 5166493
+- WhatsApp: +54 9 342 508-3468
 - Email: info@cardinal.com.ar
 - Para consultas de precio o visitas, siempre invitá a contactar por WhatsApp
 
