@@ -21,7 +21,8 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: GREETING }
   ])
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const messagesRef  = useRef<HTMLDivElement>(null)
 
   // Detectar scroll para mostrar el botón flotante
   useEffect(() => {
@@ -44,7 +45,9 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
   }, [mode])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+    }
   }, [messages, open])
 
   async function sendMessage() {
@@ -82,7 +85,7 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
       }}>
         {/* Mensajes — solo visibles cuando open=true */}
         {open && (
-          <div style={{
+          <div ref={messagesRef} style={{
             background: 'rgba(10,45,56,0.7)', backdropFilter: 'blur(16px)',
             border: '1px solid rgba(206,162,121,0.2)',
             borderBottom: 'none',
@@ -164,7 +167,7 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
             <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: 'none', color: '#7A9BA8', fontSize: '1.1rem', cursor: 'pointer' }}>✕</button>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <div ref={messagesRef} style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {messages.map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
