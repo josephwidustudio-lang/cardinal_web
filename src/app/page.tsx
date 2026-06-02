@@ -388,6 +388,18 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
           from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @media (max-width: 768px) {
+          .galeria-mosaic {
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-auto-rows: 320px !important;
+          }
+          .galeria-item-0 { grid-column: span 2 !important; grid-row: span 1 !important; }
+          .galeria-item-1 { grid-column: span 1 !important; grid-row: span 2 !important; }
+          .galeria-item-2 { grid-column: span 1 !important; grid-row: span 2 !important; }
+          .galeria-item-3 { grid-column: span 1 !important; grid-row: span 1 !important; }
+          .galeria-item-4 { grid-column: span 1 !important; grid-row: span 1 !important; }
+          .galeria-item-5 { grid-column: span 2 !important; grid-row: span 1 !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -402,15 +414,16 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
         </h2>
       </div>
 
-      {/* Mosaic Grid - Perfect Rectangle */}
-      <div style={{
+      {/* Mosaic Grid - Perfect Rectangle 16:9 */}
+      <div className="galeria-mosaic" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridAutoRows: '220px',
+        gridAutoRows: '320px',
         gap: '3px',
         padding: '0 3px',
-        maxWidth: '1000px',
-        margin: '0 auto'
+        maxWidth: '1400px',
+        margin: '0 auto',
+        aspectRatio: '16/9'
       }}>
         {shown.map((img, i) => {
           const isVisible = visibleItems.has(i)
@@ -425,6 +438,7 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
           return (
             <div
               key={img.id}
+              className={`galeria-item-${i}`}
               ref={el => { itemRefs.current[i] = el }}
               data-idx={i}
               onClick={() => setLightbox(img.url)}
