@@ -101,7 +101,6 @@ export default function Home() {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}>
           <source src={VIDEO} type="video/mp4" />
         </video>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,53,66,0.5)' }} />
         <div style={{ position: 'absolute', bottom: '3rem', left: 0, right: 0, zIndex: 2, padding: '0 2rem' }}>
           <ChatWidget mode="hero" />
         </div>
