@@ -306,51 +306,54 @@ export default function Home() {
 
 // ── GALERIA SECTION ──────────────────────────────────────────────────────────
 function buildLayout(n: number) {
-  const result: { col: string; ratio: string }[] = []
+  const patterns: { ratio: string; flex: number }[] = []
   let i = 0
 
   while (i < n) {
     const remaining = n - i
 
-    if (remaining === 1) {
-      result.push({ col: 'span 3', ratio: '21/9' })
-      i++
-    } else if (remaining === 2) {
-      result.push({ col: 'span 2', ratio: '16/9' }, { col: 'span 1', ratio: '4/3' })
+    if (remaining >= 6) {
+      // 6+: [2 grandes, 1 pequeño] x2 = [16/9, 16/9, 4/3, 4/3, 4/3, 4/3]
+      patterns.push(
+        { ratio: '16/9', flex: 2 },
+        { ratio: '4/3', flex: 1 },
+        { ratio: '16/9', flex: 2 },
+        { ratio: '4/3', flex: 1 }
+      )
+      i += 4
+    } else if (remaining === 5) {
+      patterns.push(
+        { ratio: '16/9', flex: 2 },
+        { ratio: '4/3', flex: 1 },
+        { ratio: '4/3', flex: 1 },
+        { ratio: '4/3', flex: 1 }
+      )
+      i += 4
+    } else if (remaining === 4) {
+      patterns.push(
+        { ratio: '16/9', flex: 2 },
+        { ratio: '16/9', flex: 2 }
+      )
       i += 2
     } else if (remaining === 3) {
-      result.push(
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' }
+      patterns.push(
+        { ratio: '4/3', flex: 1 },
+        { ratio: '4/3', flex: 1 },
+        { ratio: '4/3', flex: 1 }
       )
       i += 3
-    } else if (remaining === 4) {
-      result.push(
-        { col: 'span 2', ratio: '16/9' },
-        { col: 'span 2', ratio: '16/9' }
+    } else if (remaining === 2) {
+      patterns.push(
+        { ratio: '16/9', flex: 2 },
+        { ratio: '4/3', flex: 1 }
       )
       i += 2
-    } else if (remaining === 5) {
-      result.push(
-        { col: 'span 2', ratio: '16/9' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 1', ratio: '4/3' }
-      )
-      i += 4
-    } else {
-      // remaining >= 6: [2, 1] + [2, 1]
-      result.push(
-        { col: 'span 2', ratio: '16/9' },
-        { col: 'span 1', ratio: '4/3' },
-        { col: 'span 2', ratio: '16/9' },
-        { col: 'span 1', ratio: '4/3' }
-      )
-      i += 4
+    } else if (remaining === 1) {
+      patterns.push({ ratio: '16/9', flex: 3 })
+      i++
     }
   }
-  return result
+  return patterns
 }
 
 function GaleriaSection({ imagenes }: { imagenes: any[] }) {
@@ -399,11 +402,20 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
         </h2>
       </div>
 
-      {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px', padding: '0 3px' }}>
+      {/* Grid - flexible layout */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '3px',
+        padding: '0 3px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
         {shown.map((img, i) => {
           const layout = layouts[i]
           const isVisible = visibleItems.has(i)
+          const totalFlex = layouts.reduce((sum, l) => sum + l.flex, 0)
+          const widthPercent = (layout.flex / totalFlex) * 100
           return (
             <div
               key={img.id}
@@ -413,7 +425,7 @@ function GaleriaSection({ imagenes }: { imagenes: any[] }) {
               onMouseEnter={() => setHoverId(img.id)}
               onMouseLeave={() => setHoverId(null)}
               style={{
-                gridColumn: layout.col,
+                flex: `${layout.flex} 0 calc(${widthPercent}% - 3px)`,
                 aspectRatio: layout.ratio,
                 overflow: 'hidden',
                 cursor: 'zoom-in',
