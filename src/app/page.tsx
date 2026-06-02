@@ -101,12 +101,8 @@ export default function Home() {
           <source src={VIDEO} type="video/mp4" />
         </video>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,53,66,0.5)' }} />
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: '100%', padding: '0 1.5rem' }}>
+        <div style={{ position: 'absolute', bottom: '3rem', left: 0, right: 0, zIndex: 2, padding: '0 2rem' }}>
           <ChatWidget mode="hero" />
-        </div>
-        <div style={{ position: 'absolute', bottom: '6rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ width: '1px', height: '50px', background: 'linear-gradient(to bottom, #CEA279, transparent)' }} />
-          <span style={{ fontSize: '0.6rem', color: '#CEA279', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Scroll</span>
         </div>
       </section>
 

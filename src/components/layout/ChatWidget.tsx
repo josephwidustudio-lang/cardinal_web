@@ -13,10 +13,11 @@ interface Props {
 }
 
 export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Props) {
-  const [open, setOpen]         = useState(mode === 'hero')
+  const [open, setOpen]         = useState(false)
   const [input, setInput]       = useState('')
   const [loading, setLoading]   = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const containerRef            = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: GREETING }
   ])
@@ -30,6 +31,18 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
     return () => window.removeEventListener('scroll', onScroll)
   }, [mode])
 
+  // Cerrar chat hero al hacer click fuera
+  useEffect(() => {
+    if (mode !== 'hero') return
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [mode])
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, open])
@@ -41,6 +54,7 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
     setMessages(newMessages)
     setInput('')
     setLoading(true)
+    setOpen(true) // abrir el chat al enviar
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -62,62 +76,61 @@ export default function ChatWidget({ mode = 'floating', alwaysShow = false }: Pr
   // ── HERO MODE ──────────────────────────────────────────────────────────────
   if (mode === 'hero') {
     return (
-      <div style={{
-        width: '100%', maxWidth: '560px', margin: '0 auto',
-        background: 'rgba(10,45,56,0.55)', backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(206,162,121,0.25)',
+      <div ref={containerRef} style={{
+        width: '100%', maxWidth: '520px', margin: '0 auto',
         fontFamily: 'Panton, system-ui, sans-serif',
       }}>
-        {/* Header */}
-        <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(206,162,121,0.15)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <div style={{ width: '32px', height: '32px', background: '#CEA279', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <img src={LOGO} alt="Cardinal" style={{ width: '20px', filter: 'brightness(0) invert(1)' }} />
+        {/* Mensajes — solo visibles cuando open=true */}
+        {open && (
+          <div style={{
+            background: 'rgba(10,45,56,0.7)', backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(206,162,121,0.2)',
+            borderBottom: 'none',
+            padding: '1rem 1.2rem',
+            display: 'flex', flexDirection: 'column', gap: '0.7rem',
+            maxHeight: '220px', overflowY: 'auto',
+          }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{
+                  maxWidth: '85%', padding: '0.6rem 0.9rem',
+                  fontSize: '0.82rem', lineHeight: 1.6,
+                  background: m.role === 'user' ? '#CEA279' : 'rgba(206,162,121,0.12)',
+                  color: m.role === 'user' ? '#0A2D38' : '#F5F0EA',
+                  border: m.role === 'assistant' ? '1px solid rgba(206,162,121,0.15)' : 'none',
+                }}>{m.content}</div>
+              </div>
+            ))}
+            {loading && (
+              <div style={{ padding: '0.6rem 1rem', background: 'rgba(206,162,121,0.12)', border: '1px solid rgba(206,162,121,0.15)', color: '#CEA279', fontSize: '1rem', letterSpacing: '0.3em', alignSelf: 'flex-start' }}>···</div>
+            )}
+            <div ref={bottomRef} />
           </div>
-          <div>
-            <p style={{ fontSize: '0.78rem', fontWeight: 500, color: '#F5F0EA', lineHeight: 1 }}>Asesor Cardinal</p>
-            <p style={{ fontSize: '0.6rem', color: '#5BC47A', marginTop: '0.2rem' }}>● En línea</p>
-          </div>
-        </div>
+        )}
 
-        {/* Messages */}
-        <div style={{ padding: '1.2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '220px', overflowY: 'auto' }}>
-          {messages.map((m, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{
-                maxWidth: '85%', padding: '0.7rem 0.9rem',
-                fontSize: '0.82rem', lineHeight: 1.6,
-                background: m.role === 'user' ? '#CEA279' : 'rgba(206,162,121,0.12)',
-                color: m.role === 'user' ? '#0A2D38' : '#F5F0EA',
-                border: m.role === 'assistant' ? '1px solid rgba(206,162,121,0.2)' : 'none',
-              }}>{m.content}</div>
-            </div>
-          ))}
-          {loading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{ padding: '0.7rem 1rem', background: 'rgba(206,162,121,0.12)', border: '1px solid rgba(206,162,121,0.2)', color: '#CEA279', fontSize: '1rem', letterSpacing: '0.3em' }}>···</div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {/* Input */}
-        <div style={{ padding: '0.8rem 1rem', borderTop: '1px solid rgba(206,162,121,0.15)', display: 'flex', gap: '0.5rem' }}>
+        {/* Input box — siempre visible */}
+        <div style={{
+          display: 'flex',
+          background: 'rgba(10,45,56,0.6)', backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(206,162,121,0.25)',
+        }}>
           <input
             value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-            placeholder="Escribí tu consulta..."
+            placeholder="Hola, soy Cardinal. ¿En qué te puedo ayudar?"
             disabled={loading}
             style={{
-              flex: 1, background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(206,162,121,0.2)',
-              color: '#F5F0EA', fontSize: '0.82rem', padding: '0.7rem 0.9rem',
+              flex: 1, background: 'transparent',
+              border: 'none', color: '#F5F0EA',
+              fontSize: '0.85rem', padding: '1rem 1.2rem',
               outline: 'none', fontFamily: 'Panton, system-ui, sans-serif',
             }}
           />
           <button onClick={sendMessage} disabled={loading || !input.trim()} style={{
-            background: input.trim() && !loading ? '#CEA279' : 'rgba(206,162,121,0.2)',
-            border: 'none', color: input.trim() && !loading ? '#0A2D38' : '#7A9BA8',
-            padding: '0.7rem 1rem', cursor: input.trim() && !loading ? 'pointer' : 'default',
-            fontSize: '1rem', transition: 'all 0.2s',
+            background: input.trim() && !loading ? '#CEA279' : 'transparent',
+            border: 'none', borderLeft: '1px solid rgba(206,162,121,0.2)',
+            color: input.trim() && !loading ? '#0A2D38' : 'rgba(206,162,121,0.4)',
+            padding: '1rem 1.4rem', cursor: input.trim() && !loading ? 'pointer' : 'default',
+            fontSize: '1.1rem', transition: 'all 0.2s', flexShrink: 0,
           }}>→</button>
         </div>
       </div>
