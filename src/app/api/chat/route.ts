@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
 const SYSTEM_PROMPT = `Sos el asesor virtual de Cardinal, un desarrollo inmobiliario premium ubicado en Necochea 3568, Santa Fe, Argentina.
 
@@ -37,14 +37,22 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json()
 
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 300,
-      system: SYSTEM_PROMPT,
-      messages,
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: SYSTEM_PROMPT,
     })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    // Convertir historial al formato de Gemini
+    const history = messages.slice(0, -1).map((m: any) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+
+    const chat = model.startChat({ history })
+    const lastMessage = messages[messages.length - 1].content
+    const result = await chat.sendMessage(lastMessage)
+    const text = result.response.text()
+
     return NextResponse.json({ message: text })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
