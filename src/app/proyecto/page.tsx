@@ -41,16 +41,16 @@ export default function ProyectoPage() {
     </main>
   )
 
-  // Unidad específica del piso+lado seleccionado
-  const unidadActual = allUnidades.find(u => u.piso === piso && u.tipo === lado)
-    ?? allUnidades.find(u => u.piso === piso) // fallback: cualquier unidad del piso
+  // Override específico del piso+lado (editado en el panel)
+  const pisoOverride = cfg.pisos_override?.[String(piso)]?.[lado] ?? null
 
-  // Items y dormitorios: usa los de la unidad si existen, sino los globales
-  const items  = (unidadActual?.items?.length > 0 ? unidadActual.items : null)
-    ?? (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
-  const dormi  = unidadActual?.dormitorios
+  // Items, dormitorios y m2: usa override del piso si existe, sino los globales
+  const items  = pisoOverride?.items?.length > 0
+    ? pisoOverride.items
+    : (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
+  const dormi  = pisoOverride?.dormitorios
     ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
-  const m2     = unidadActual?.m2
+  const m2     = pisoOverride?.m2
     ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
   const axoUrl = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
   const wa     = cfg.wa_number || ''

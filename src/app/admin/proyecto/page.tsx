@@ -30,26 +30,36 @@ export default function AdminProyecto() {
   const [saving, setSaving]   = useState(false)
   const [msg, setMsg]         = useState('')
   const [tab, setTab]         = useState<'info' | 'fotos' | 'tipologias' | 'contacto'>('info')
-  const [pisoSel, setPisoSel] = useState(9)
+  const [pisoSel, setPisoSel]   = useState(9)
+  const [ladoSel, setLadoSel]   = useState<'frente'|'contrafrente'>('frente')
   const [unidades, setUnidades] = useState<any[]>([])
   const [savingU, setSavingU]   = useState<string | null>(null)
+  const [edificioId, setEdificioId] = useState<string|null>(null)
 
   const renderRef   = useRef<HTMLInputElement>(null)
   const frenteRef   = useRef<HTMLInputElement>(null)
   const cfRef       = useRef<HTMLInputElement>(null)
 
   useEffect(() => { cargar() }, [])
-  useEffect(() => { cargarUnidades() }, [pisoSel])
+  useEffect(() => { if (edificioId) cargarUnidades() }, [pisoSel, edificioId])
 
   async function cargar() {
     setLoading(true)
-    const { data } = await supabase.from('proyecto_config').select('*').limit(1).single()
-    if (data) setCfg(data)
+    const [{ data: cfgData }, { data: eds }] = await Promise.all([
+      supabase.from('proyecto_config').select('*').limit(1).single(),
+      supabase.from('edificios').select('id').eq('activo', true).order('orden').limit(1),
+    ])
+    if (cfgData) setCfg(cfgData)
+    if (eds?.[0]) setEdificioId(eds[0].id)
     setLoading(false)
   }
 
   async function cargarUnidades() {
-    const { data } = await supabase.from('unidades').select('*').eq('piso', pisoSel).order('codigo')
+    const { data } = await supabase
+      .from('unidades').select('*')
+      .eq('edificio_id', edificioId)
+      .eq('piso', pisoSel)
+      .order('codigo')
     setUnidades(data ?? [])
   }
 
@@ -60,33 +70,38 @@ export default function AdminProyecto() {
     cargarUnidades()
   }
 
-  async function actualizarUnidad(id: string, fields: Record<string, any>) {
-    setSavingU(id)
-    await supabase.from('unidades').update(fields).eq('id', id)
+  // Guarda override de piso en proyecto_config.pisos_override
+  async function guardarPisoOverride() {
+    if (!cfg) return
+    setSavingU('piso')
+    const overrides = (cfg as any).pisos_override ?? {}
+    const key = String(pisoSel)
+    overrides[key] = { ...(overrides[key] ?? {}), [ladoSel]: pisoCfg }
+    const { error } = await supabase.from('proyecto_config')
+      .update({ pisos_override: overrides }).eq('id', cfg.id)
+    setCfg((prev: any) => prev ? { ...prev, pisos_override: overrides } : prev)
+    setMsg(error ? `✗ Error: ${error.message}` : `✓ Piso ${pisoSel} / ${ladoSel} guardado`)
     setSavingU(null)
-    cargarUnidades()
   }
 
-  function updateUnidadItem(uid: string, idx: number, col: 0 | 1, val: string) {
-    setUnidades(prev => prev.map(u => {
-      if (u.id !== uid) return u
-      const items = [...(u.items ?? [])]
-      items[idx] = col === 0 ? [val, items[idx]?.[1] ?? ''] : [items[idx]?.[0] ?? '', val]
-      return { ...u, items }
-    }))
-  }
+  // Config del piso+lado actual (con fallback a global)
+  const overrides = (cfg as any)?.pisos_override ?? {}
+  const pisoOverride = overrides[String(pisoSel)]?.[ladoSel] ?? null
+  const globalItems = ladoSel === 'frente' ? cfg?.frente_items : cfg?.contrafrente_items
+  const globalDorm  = ladoSel === 'frente' ? cfg?.frente_dormitorios : cfg?.contrafrente_dormitorios
+  const globalM2    = ladoSel === 'frente' ? cfg?.frente_m2 : cfg?.contrafrente_m2
 
-  function addUnidadItem(uid: string) {
-    setUnidades(prev => prev.map(u =>
-      u.id === uid ? { ...u, items: [...(u.items ?? []), ['', '']] } : u
-    ))
-  }
+  const [pisoCfg, setPisoCfg] = useState<any>({ dormitorios: '', m2: '', items: [] })
 
-  function removeUnidadItem(uid: string, idx: number) {
-    setUnidades(prev => prev.map(u =>
-      u.id === uid ? { ...u, items: (u.items ?? []).filter((_: any, i: number) => i !== idx) } : u
-    ))
-  }
+  useEffect(() => {
+    if (!cfg) return
+    const ov = ((cfg as any).pisos_override ?? {})[String(pisoSel)]?.[ladoSel]
+    setPisoCfg({
+      dormitorios: ov?.dormitorios ?? '',
+      m2:          ov?.m2 ?? '',
+      items:       ov?.items ?? [],
+    })
+  }, [pisoSel, ladoSel, cfg])
 
   async function guardar() {
     if (!cfg) return
@@ -262,24 +277,92 @@ export default function AdminProyecto() {
       {tab === 'tipologias' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
-          {/* ── Selector de piso + disponibilidad ── */}
+          {/* ── Selector piso + lado ── */}
           <div style={{ background: '#0D3542', border: '1px solid rgba(206,162,121,0.15)', padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.8rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               <p style={{ fontSize: '0.72rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                Disponibilidad por piso
+                Editar por piso
               </p>
-              <select
-                value={pisoSel}
-                onChange={e => setPisoSel(Number(e.target.value))}
-                style={{
-                  background: '#0A2D38', color: '#F5F0EA', border: '1px solid rgba(206,162,121,0.3)',
-                  padding: '0.5rem 1rem', fontSize: '0.82rem', cursor: 'pointer',
-                  fontFamily: 'Panton, system-ui, sans-serif', outline: 'none',
-                }}
-              >
+              <select value={pisoSel} onChange={e => setPisoSel(Number(e.target.value))}
+                style={{ background: '#0A2D38', color: '#F5F0EA', border: '1px solid rgba(206,162,121,0.3)', padding: '0.5rem 1rem', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif', outline: 'none' }}>
                 {PISOS.map(p => <option key={p} value={p}>Piso {p}</option>)}
               </select>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {(['frente','contrafrente'] as const).map(l => (
+                  <button key={l} onClick={() => setLadoSel(l)} style={{
+                    background: ladoSel === l ? '#CEA279' : 'transparent',
+                    border: '1px solid ' + (ladoSel === l ? '#CEA279' : 'rgba(206,162,121,0.3)'),
+                    color: ladoSel === l ? '#0A2D38' : '#CEA279',
+                    padding: '0.45rem 1rem', fontSize: '0.68rem', cursor: 'pointer',
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    fontFamily: 'Panton, system-ui, sans-serif',
+                  }}>{l === 'frente' ? 'Frente' : 'Contrafrente'}</button>
+                ))}
+              </div>
             </div>
+
+            {/* Info específica del piso */}
+            <div style={{ background: '#0A2D38', padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid rgba(206,162,121,0.1)' }}>
+              <p style={{ fontSize: '0.62rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1.2rem' }}>
+                Piso {pisoSel} — {ladoSel === 'frente' ? 'Frente' : 'Contrafrente'}
+                {pisoOverride && <span style={{ color: '#5BC47A', marginLeft: '0.8rem' }}>● Personalizado</span>}
+                {!pisoOverride && <span style={{ color: '#7A9BA8', marginLeft: '0.8rem' }}>○ Usando valores globales</span>}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                <div>
+                  <label style={lbl}>Dormitorios <span style={{ color: '#7A9BA8' }}>(global: {globalDorm})</span></label>
+                  <input type="number" style={inp} value={pisoCfg.dormitorios}
+                    placeholder={String(globalDorm)}
+                    onChange={e => setPisoCfg((p: any) => ({ ...p, dormitorios: e.target.value ? parseInt(e.target.value) : '' }))} />
+                </div>
+                <div>
+                  <label style={lbl}>Superficie m² <span style={{ color: '#7A9BA8' }}>(global: {globalM2})</span></label>
+                  <input type="number" style={inp} value={pisoCfg.m2}
+                    placeholder={String(globalM2)}
+                    onChange={e => setPisoCfg((p: any) => ({ ...p, m2: e.target.value ? parseInt(e.target.value) : '' }))} />
+                </div>
+              </div>
+              <label style={{ ...lbl, marginBottom: '0.8rem' }}>Características <span style={{ color: '#7A9BA8' }}>(vacío = usa las globales)</span></label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                {(pisoCfg.items ?? []).map((item: [string,string], idx: number) => (
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.4rem', alignItems: 'center' }}>
+                    <input style={{ ...inp, fontSize: '0.78rem' }} value={item[0]}
+                      onChange={e => setPisoCfg((p: any) => { const items = [...p.items]; items[idx] = [e.target.value, items[idx][1]]; return { ...p, items } })}
+                      placeholder="Ambiente" />
+                    <input style={{ ...inp, fontSize: '0.78rem' }} value={item[1]}
+                      onChange={e => setPisoCfg((p: any) => { const items = [...p.items]; items[idx] = [items[idx][0], e.target.value]; return { ...p, items } })}
+                      placeholder="Medida" />
+                    <button onClick={() => setPisoCfg((p: any) => ({ ...p, items: p.items.filter((_: any, i: number) => i !== idx) }))}
+                      style={{ background: 'transparent', border: '1px solid rgba(224,112,112,0.3)', color: '#E07070', padding: '0.4rem 0.6rem', cursor: 'pointer' }}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button onClick={() => setPisoCfg((p: any) => ({ ...p, items: [...(p.items ?? []), ['', '']] }))}
+                  style={{ background: 'transparent', border: '1px dashed rgba(206,162,121,0.3)', color: '#CEA279', padding: '0.4rem 0.8rem', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  + Agregar fila
+                </button>
+                <button onClick={guardarPisoOverride} disabled={savingU === 'piso'}
+                  style={{ background: '#CEA279', border: 'none', color: '#0A2D38', padding: '0.5rem 1.5rem', fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif', fontWeight: 500 }}>
+                  {savingU === 'piso' ? 'Guardando...' : `Guardar Piso ${pisoSel}`}
+                </button>
+                {pisoOverride && (
+                  <button onClick={async () => {
+                    const ov = { ...((cfg as any).pisos_override ?? {}) }
+                    if (ov[String(pisoSel)]) { delete ov[String(pisoSel)][ladoSel] }
+                    await supabase.from('proyecto_config').update({ pisos_override: ov }).eq('id', cfg!.id)
+                    setCfg((prev: any) => prev ? { ...prev, pisos_override: ov } : prev)
+                    setPisoCfg({ dormitorios: '', m2: '', items: [] })
+                    setMsg('✓ Override eliminado, vuelve a usar valores globales')
+                  }} style={{ background: 'transparent', border: '1px solid rgba(224,112,112,0.3)', color: '#E07070', padding: '0.5rem 1rem', fontSize: '0.65rem', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    Restablecer global
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Disponibilidad */}
+            <p style={{ fontSize: '0.68rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1rem' }}>Disponibilidad de unidades</p>
 
             {unidades.length === 0 ? (
               <p style={{ color: '#7A9BA8', fontSize: '0.82rem' }}>No hay unidades registradas para el piso {pisoSel}.</p>
@@ -317,63 +400,7 @@ export default function AdminProyecto() {
                         </div>
                       </div>
 
-                      {/* Dormitorios */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem', marginBottom: '1.2rem', alignItems: 'center' }}>
-                        <div>
-                          <label style={lbl}>Dormitorios</label>
-                          <input type="number" style={{ ...inp, width: '80px' }}
-                            value={u.dormitorios ?? ''}
-                            placeholder="—"
-                            onChange={e => setUnidades(prev => prev.map(x => x.id === u.id ? { ...x, dormitorios: parseInt(e.target.value) || null } : x))}
-                            onBlur={e => actualizarUnidad(u.id, { dormitorios: parseInt(e.target.value) || null })}
-                          />
-                        </div>
-                        <p style={{ fontSize: '0.68rem', color: '#7A9BA8', marginTop: '1.2rem' }}>
-                          Si está vacío usa el valor global de la tipología
-                        </p>
-                      </div>
-
-                      {/* Items / Características */}
-                      <div>
-                        <label style={{ ...lbl, marginBottom: '0.6rem' }}>Características específicas</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.6rem' }}>
-                          {items.map((item, idx) => (
-                            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.4rem', alignItems: 'center' }}>
-                              <input style={{ ...inp, fontSize: '0.75rem' }} value={item[0]}
-                                onChange={e => updateUnidadItem(u.id, idx, 0, e.target.value)}
-                                placeholder="Ambiente" />
-                              <input style={{ ...inp, fontSize: '0.75rem' }} value={item[1]}
-                                onChange={e => updateUnidadItem(u.id, idx, 1, e.target.value)}
-                                placeholder="Medida" />
-                              <button onClick={() => removeUnidadItem(u.id, idx)} style={{
-                                background: 'transparent', border: '1px solid rgba(224,112,112,0.3)',
-                                color: '#E07070', padding: '0.4rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem',
-                              }}>✕</button>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.6rem' }}>
-                          <button onClick={() => addUnidadItem(u.id)} style={{
-                            background: 'transparent', border: '1px dashed rgba(206,162,121,0.3)',
-                            color: '#CEA279', padding: '0.4rem 0.8rem', fontSize: '0.65rem',
-                            letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                          }}>+ Agregar fila</button>
-                          <button onClick={() => actualizarUnidad(u.id, { items: u.items ?? [] })}
-                            disabled={isSaving}
-                            style={{
-                              background: '#CEA279', border: 'none', color: '#0A2D38',
-                              padding: '0.4rem 1rem', fontSize: '0.65rem',
-                              letterSpacing: '0.1em', textTransform: 'uppercase',
-                              cursor: isSaving ? 'default' : 'pointer', opacity: isSaving ? 0.6 : 1,
-                              fontFamily: 'Panton, system-ui, sans-serif',
-                            }}>
-                            {isSaving ? '...' : 'Guardar'}
-                          </button>
-                        </div>
-                        <p style={{ fontSize: '0.65rem', color: '#7A9BA8', marginTop: '0.5rem' }}>
-                          Si está vacío usa las características globales de la tipología
-                        </p>
-                      </div>
+                      {u.m2 && <p style={{ fontSize: '0.7rem', color: '#7A9BA8' }}>{u.m2} m²{u.precio_texto ? ` · ${u.precio_texto}` : ''}</p>}
                     </div>
                   )
                 })}
