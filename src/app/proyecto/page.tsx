@@ -165,7 +165,7 @@ function ProyectoPageInner() {
             }}>
               {/* SUM / Terraza — techo del edificio, no clickeable */}
               <div style={{
-                flex: 1.1,
+                flex: 1.5,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: '3px',
                 borderBottom: '1px solid rgba(206,162,121,0.2)',
@@ -203,10 +203,10 @@ function ProyectoPageInner() {
                     )}
                     <span style={{
                       fontFamily: 'Panton, system-ui, sans-serif',
-                      fontSize: active ? '1.4rem' : '0.95rem',
-                      fontWeight: active ? 700 : 400,
-                      color: active ? color : 'rgba(245,240,234,0.4)',
-                      textShadow: active ? `0 0 12px ${color}` : 'none',
+                      fontSize: active ? '1.6rem' : '1.1rem',
+                      fontWeight: active ? 700 : 500,
+                      color: active ? color : 'rgba(245,240,234,0.72)',
+                      textShadow: active ? `0 0 14px ${color}, 0 0 28px ${color}88` : '0 1px 3px rgba(0,0,0,0.6)',
                       lineHeight: 1,
                       transition: 'font-size 0.22s cubic-bezier(0.22,1,0.36,1), color 0.22s, text-shadow 0.22s',
                     }}>{p}</span>
