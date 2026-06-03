@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatWidget from '@/components/layout/ChatWidget'
@@ -19,6 +19,14 @@ function ProyectoPageInner() {
   const [cfg, setCfg]                 = useState<any>(null)
   const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
   const [allUnidades, setAllUnidades] = useState<any[]>([])
+  const [animKey, setAnimKey]         = useState(0)
+  const prevPiso                      = useRef(piso)
+
+  function changePiso(p: number) {
+    prevPiso.current = piso
+    setPiso(p)
+    setAnimKey(k => k + 1)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -75,6 +83,26 @@ function ProyectoPageInner() {
   return (
     <main style={{ background: '#0D3542', minHeight: '100vh', fontFamily: 'Panton, system-ui, sans-serif' }}>
       <style>{`
+        @keyframes axoFadeIn {
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+        @keyframes pisoNumIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes infoSlideIn {
+          from { opacity: 0; transform: translateX(8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .axo-img    { animation: axoFadeIn 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+        .piso-anim  { animation: pisoNumIn 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+        .info-anim  { animation: infoSlideIn 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+
+        .piso-bar { transition: background 0.2s, border-color 0.2s, color 0.2s; }
+        .piso-bar:hover { background: rgba(206,162,121,0.12) !important; }
+        .piso-bar.active { background: rgba(206,162,121,0.18) !important; }
+
         @media (max-width: 768px) {
           .proyecto-layout   { flex-direction: column !important; height: auto !important; }
           .proyecto-sidebar  { width: 100% !important; height: 60vw !important; min-height: 260px; max-height: 380px; }
@@ -85,8 +113,9 @@ function ProyectoPageInner() {
           .proyecto-axo      { padding: 2rem 1.5rem !important; min-height: 260px !important; border-right: none !important; border-bottom: 1px solid rgba(206,162,121,0.1) !important; }
           .proyecto-info     { padding: 2rem 1.5rem !important; }
           .piso-num          { font-size: 3.5rem !important; }
-          .pisos-selector    { right: 0.6rem !important; gap: 0.25rem !important; }
-          .pisos-btn         { width: 34px !important; height: 22px !important; font-size: 0.55rem !important; }
+          .pisos-selector    { width: 100% !important; right: 0 !important; top: auto !important; bottom: 0 !important; transform: none !important; flex-direction: row !important; justify-content: center !important; padding: 0.4rem !important; background: rgba(10,45,56,0.92) !important; }
+          .pisos-btn-wrap    { flex-direction: row !important; }
+          .piso-bar          { min-width: 36px !important; height: 32px !important; flex-direction: column !important; gap: 1px !important; padding: 0 0.4rem !important; }
         }
       `}</style>
 
@@ -126,43 +155,71 @@ function ProyectoPageInner() {
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,45,56,0.2)' }} />
 
-            {/* Selector de pisos */}
+            {/* Selector de pisos — sección arquitectónica */}
             <div className="pisos-selector" style={{
               position: 'absolute', right: '1rem', top: '50%',
-              transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '0.35rem'
+              transform: 'translateY(-50%)',
+              display: 'flex', flexDirection: 'column',
+              background: 'rgba(8,34,43,0.88)', backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(206,162,121,0.18)',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
             }}>
-              {PISOS.map(p => {
+              {/* Techo del edificio */}
+              <div style={{ height: '4px', background: 'linear-gradient(90deg, transparent, #CEA279, transparent)', opacity: 0.6 }} />
+
+              {PISOS.map((p, idx) => {
                 const est = pisoEstados[p]
                 const dot = pisoColor(est)
                 const active = piso === p
+                const isTop = idx === 0
                 return (
-                  <button key={p} className="pisos-btn" onClick={() => setPiso(p)} style={{
-                    width: '42px', height: '26px', position: 'relative',
-                    background: active ? '#CEA279' : 'rgba(13,53,66,0.85)',
-                    border: '1px solid ' + (active ? '#CEA279' : 'rgba(206,162,121,0.25)'),
-                    color: active ? '#0D3542' : '#CEA279',
-                    fontSize: '0.62rem', fontWeight: active ? 700 : 400,
-                    cursor: 'pointer', transition: 'all 0.2s',
-                    backdropFilter: 'blur(4px)', fontFamily: 'Panton, system-ui, sans-serif',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                  }}>
-                    {p}
+                  <button
+                    key={p}
+                    className={`piso-bar${active ? ' active' : ''}`}
+                    onClick={() => changePiso(p)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      gap: '0.6rem', padding: '0.45rem 0.75rem',
+                      background: active ? 'rgba(206,162,121,0.18)' : 'transparent',
+                      border: 'none',
+                      borderTop: isTop ? 'none' : '1px solid rgba(206,162,121,0.08)',
+                      borderLeft: active ? '2px solid #CEA279' : '2px solid transparent',
+                      color: active ? '#CEA279' : 'rgba(206,162,121,0.55)',
+                      fontSize: '0.65rem', fontWeight: active ? 700 : 400,
+                      cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
+                      minWidth: '64px', textAlign: 'left',
+                    }}
+                  >
+                    <span style={{ letterSpacing: '0.05em' }}>
+                      {active ? (
+                        <span style={{ fontSize: '0.5rem', display: 'block', color: 'rgba(206,162,121,0.6)', letterSpacing: '0.1em', lineHeight: 1 }}>PISO</span>
+                      ) : null}
+                      {p}
+                    </span>
                     {est && (
                       <span style={{
-                        width: '5px', height: '5px', borderRadius: '50%',
-                        background: active ? '#0D3542' : dot,
-                        flexShrink: 0,
+                        width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
+                        background: active ? dot : dot,
+                        opacity: active ? 1 : 0.7,
+                        boxShadow: active ? `0 0 6px ${dot}` : 'none',
+                        transition: 'box-shadow 0.3s',
                       }} />
                     )}
                   </button>
                 )
               })}
+
+              {/* Base del edificio */}
+              <div style={{ height: '4px', background: 'linear-gradient(90deg, transparent, rgba(206,162,121,0.4), transparent)' }} />
             </div>
 
             {/* Leyenda */}
             <div style={{
               position: 'absolute', bottom: '1.5rem', left: '1.5rem',
               display: 'flex', flexDirection: 'column', gap: '0.3rem',
+              background: 'rgba(8,34,43,0.75)', backdropFilter: 'blur(6px)',
+              padding: '0.6rem 0.8rem', border: '1px solid rgba(206,162,121,0.1)',
             }}>
               {[
                 { label: 'Disponible', color: '#5BC47A' },
@@ -170,20 +227,10 @@ function ProyectoPageInner() {
                 { label: 'Vendido',    color: '#E07070' },
               ].map(l => (
                 <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: l.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.55rem', color: '#F5F0EA', letterSpacing: '0.1em' }}>{l.label}</span>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: l.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.52rem', color: '#F5F0EA', letterSpacing: '0.1em' }}>{l.label}</span>
                 </div>
               ))}
-            </div>
-
-            {/* Piso seleccionado */}
-            <div style={{
-              position: 'absolute', bottom: '1.5rem', right: '3.5rem',
-              background: 'rgba(13,53,66,0.9)', backdropFilter: 'blur(8px)',
-              padding: '0.8rem 1.2rem', border: '1px solid rgba(206,162,121,0.2)'
-            }}>
-              <p style={{ fontSize: '0.55rem', color: '#CEA279', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Piso</p>
-              <p style={{ fontSize: '1.8rem', color: '#F5F0EA', fontWeight: 300, lineHeight: 1 }}>{piso}</p>
             </div>
           </div>
         </div>
@@ -198,7 +245,7 @@ function ProyectoPageInner() {
             justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <span className="piso-num" style={{
+              <span key={`piso-num-${animKey}`} className="piso-num piso-anim" style={{
                 fontSize: '5rem', fontWeight: 700, color: 'transparent',
                 WebkitTextStroke: '2px #CEA279', lineHeight: 1
               }}>{piso}</span>
@@ -219,7 +266,7 @@ function ProyectoPageInner() {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               {(['frente', 'contrafrente'] as const).map(t => (
-                <button key={t} onClick={() => setLado(t)} style={{
+                <button key={t} onClick={() => { setLado(t); setAnimKey(k => k + 1) }} style={{
                   padding: '0.6rem 1.2rem', cursor: 'pointer',
                   background: lado === t ? '#CEA279' : 'transparent',
                   border: '1px solid ' + (lado === t ? '#CEA279' : 'rgba(206,162,121,0.3)'),
@@ -239,10 +286,10 @@ function ProyectoPageInner() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: '#0A2D38', minHeight: '400px'
             }}>
-              {axoUrl && <img src={axoUrl} alt={'Planta ' + lado} style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain' }} />}
+              {axoUrl && <img key={`axo-${animKey}`} src={axoUrl} alt={'Planta ' + lado} className="axo-img" style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain' }} />}
             </div>
 
-            <div className="proyecto-info" style={{ padding: '3rem' }}>
+            <div key={`info-${animKey}`} className="proyecto-info info-anim" style={{ padding: '3rem' }}>
               <p style={{ fontSize: '0.6rem', color: '#CEA279', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>Características</p>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {(items || []).map((item: [string, string], i: number) => (
