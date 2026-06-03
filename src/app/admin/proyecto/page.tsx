@@ -70,6 +70,25 @@ export default function AdminProyecto() {
     cargarUnidades()
   }
 
+  // Autoguardado inmediato de un campo específico (sin tocar el botón guardar)
+  async function autoguardarCampo(campo: string, valor: any) {
+    if (!cfg) return
+    const overrides = JSON.parse(JSON.stringify((cfg as any).pisos_override ?? {}))
+    const key = String(pisoSel)
+    overrides[key] = overrides[key] ?? {}
+    overrides[key][ladoSel] = {
+      dormitorios: overrides[key][ladoSel]?.dormitorios ?? null,
+      m2:          overrides[key][ladoSel]?.m2 ?? null,
+      cochera:     overrides[key][ladoSel]?.cochera ?? 'incluida',
+      disponible:  overrides[key][ladoSel]?.disponible ?? 'disponible',
+      items:       overrides[key][ladoSel]?.items ?? [],
+      [campo]:     valor,
+    }
+    await supabase.from('proyecto_config').update({ pisos_override: overrides }).eq('id', cfg.id)
+    setCfg((prev: any) => prev ? { ...prev, pisos_override: overrides } : prev)
+    setMsg(`✓ Piso ${pisoSel} ${ladoSel} — ${campo} actualizado`)
+  }
+
   // Guarda override de piso en proyecto_config.pisos_override
   async function guardarPisoOverride() {
     if (!cfg) return
@@ -330,7 +349,13 @@ export default function AdminProyecto() {
               </div>
               <div>
                 <label style={lbl}>Cochera</label>
-                <select value={pisoCfg.cochera} onChange={e => setPisoCfg((p: any) => ({ ...p, cochera: e.target.value }))}
+                <select value={pisoCfg.cochera}
+                  onChange={async e => {
+                    const val = e.target.value
+                    const newCfg = { ...pisoCfg, cochera: val }
+                    setPisoCfg(newCfg)
+                    await autoguardarCampo('cochera', val)
+                  }}
                   style={{ ...inp, cursor: 'pointer' }}>
                   <option value="incluida">Incluida</option>
                   <option value="no_incluida">No incluida</option>
@@ -339,8 +364,17 @@ export default function AdminProyecto() {
               </div>
               <div>
                 <label style={lbl}>Disponibilidad</label>
-                <select value={pisoCfg.disponible} onChange={e => setPisoCfg((p: any) => ({ ...p, disponible: e.target.value }))}
-                  style={{ ...inp, cursor: 'pointer', color: pisoCfg.disponible === 'disponible' ? '#5BC47A' : pisoCfg.disponible === 'reservado' ? '#CEA279' : '#E07070' }}>
+                <select value={pisoCfg.disponible}
+                  onChange={async e => {
+                    const val = e.target.value
+                    const newCfg = { ...pisoCfg, disponible: val }
+                    setPisoCfg(newCfg)
+                    await autoguardarCampo('disponible', val)
+                  }}
+                  style={{
+                    ...inp, cursor: 'pointer',
+                    color: pisoCfg.disponible === 'disponible' ? '#5BC47A' : pisoCfg.disponible === 'reservado' ? '#CEA279' : '#E07070'
+                  }}>
                   <option value="disponible">Disponible</option>
                   <option value="reservado">Reservado</option>
                   <option value="vendido">Vendido</option>
