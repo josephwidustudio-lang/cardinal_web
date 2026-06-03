@@ -64,7 +64,7 @@ export default function AdminProyecto() {
       precio_texto: cfg.precio_texto,
       financiacion_texto: cfg.financiacion_texto,
     }).eq('id', cfg.id)
-    setMsg(error ? '✗ Error al guardar' : '✓ Cambios guardados correctamente')
+    setMsg(error ? `✗ Error: ${error.message}` : '✓ Cambios guardados correctamente')
     setSaving(false)
   }
 

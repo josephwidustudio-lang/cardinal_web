@@ -8,14 +8,30 @@ const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/
 const PISOS = [9,8,7,6,5,4,3,2,1]
 
 export default function ProyectoPage() {
-  const [piso, setPiso] = useState(9)
-  const [lado, setLado] = useState<'frente' | 'contrafrente'>('frente')
-  const [cfg, setCfg]   = useState<any>(null)
-  const [pisoOpen, setPisoOpen] = useState(false)
+  const [piso, setPiso]         = useState(9)
+  const [lado, setLado]         = useState<'frente' | 'contrafrente'>('frente')
+  const [cfg, setCfg]           = useState<any>(null)
+  const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
 
   useEffect(() => {
-    supabase.from('proyecto_config').select('*').limit(1).single()
-      .then(({ data }) => { if (data) setCfg(data) })
+    Promise.all([
+      supabase.from('proyecto_config').select('*').limit(1).single(),
+      supabase.from('unidades').select('piso, estado'),
+    ]).then(([{ data: cfgData }, { data: unidades }]) => {
+      if (cfgData) setCfg(cfgData)
+      if (unidades) {
+        // Por piso: si hay alguna disponible → verde, solo reservadas → amarillo, todas vendidas → rojo
+        const map: Record<number, string> = {}
+        PISOS.forEach(p => {
+          const del_piso = unidades.filter(u => u.piso === p)
+          if (del_piso.length === 0) { map[p] = 'sin_unidades'; return }
+          if (del_piso.some(u => u.estado === 'disponible')) map[p] = 'disponible'
+          else if (del_piso.some(u => u.estado === 'reservado')) map[p] = 'reservado'
+          else map[p] = 'vendido'
+        })
+        setPisoEstados(map)
+      }
+    })
   }, [])
 
   if (!cfg) return (
@@ -29,6 +45,15 @@ export default function ProyectoPage() {
   const m2     = lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2
   const axoUrl = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
   const wa     = cfg.wa_number || ''
+
+  function pisoColor(estado: string) {
+    if (estado === 'disponible') return '#5BC47A'
+    if (estado === 'reservado')  return '#CEA279'
+    if (estado === 'vendido')    return '#E07070'
+    return 'rgba(206,162,121,0.3)'
+  }
+
+  const estadoActual = pisoEstados[piso]
 
   return (
     <main style={{ background: '#0D3542', minHeight: '100vh', fontFamily: 'Panton, system-ui, sans-serif' }}>
@@ -67,7 +92,7 @@ export default function ProyectoPage() {
 
       <div className="proyecto-layout" style={{ paddingTop: '60px', display: 'flex', height: '100vh' }}>
 
-        {/* ── SIDEBAR izquierdo ── */}
+        {/* ── SIDEBAR ── */}
         <div className="proyecto-sidebar" style={{
           width: '400px', flexShrink: 0, background: '#0A2D38',
           borderRight: '1px solid rgba(206,162,121,0.1)', display: 'flex', flexDirection: 'column'
@@ -84,26 +109,59 @@ export default function ProyectoPage() {
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,45,56,0.2)' }} />
 
-            {/* Pisos */}
+            {/* Selector de pisos */}
             <div className="pisos-selector" style={{
               position: 'absolute', right: '1rem', top: '50%',
               transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '0.35rem'
             }}>
-              {PISOS.map(p => (
-                <button key={p} className="pisos-btn" onClick={() => setPiso(p)} style={{
-                  width: '42px', height: '26px',
-                  background: piso === p ? '#CEA279' : 'rgba(13,53,66,0.8)',
-                  border: '1px solid ' + (piso === p ? '#CEA279' : 'rgba(206,162,121,0.3)'),
-                  color: piso === p ? '#0D3542' : '#CEA279',
-                  fontSize: '0.62rem', fontWeight: piso === p ? 700 : 400,
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  backdropFilter: 'blur(4px)', fontFamily: 'Panton, system-ui, sans-serif'
-                }}>{p}</button>
+              {PISOS.map(p => {
+                const est = pisoEstados[p]
+                const dot = pisoColor(est)
+                const active = piso === p
+                return (
+                  <button key={p} className="pisos-btn" onClick={() => setPiso(p)} style={{
+                    width: '42px', height: '26px', position: 'relative',
+                    background: active ? '#CEA279' : 'rgba(13,53,66,0.85)',
+                    border: '1px solid ' + (active ? '#CEA279' : 'rgba(206,162,121,0.25)'),
+                    color: active ? '#0D3542' : '#CEA279',
+                    fontSize: '0.62rem', fontWeight: active ? 700 : 400,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    backdropFilter: 'blur(4px)', fontFamily: 'Panton, system-ui, sans-serif',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px',
+                  }}>
+                    {p}
+                    {est && (
+                      <span style={{
+                        width: '5px', height: '5px', borderRadius: '50%',
+                        background: active ? '#0D3542' : dot,
+                        flexShrink: 0,
+                      }} />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Leyenda */}
+            <div style={{
+              position: 'absolute', bottom: '1.5rem', left: '1.5rem',
+              display: 'flex', flexDirection: 'column', gap: '0.3rem',
+            }}>
+              {[
+                { label: 'Disponible', color: '#5BC47A' },
+                { label: 'Reservado',  color: '#CEA279' },
+                { label: 'Vendido',    color: '#E07070' },
+              ].map(l => (
+                <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: l.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.55rem', color: '#F5F0EA', letterSpacing: '0.1em' }}>{l.label}</span>
+                </div>
               ))}
             </div>
 
+            {/* Piso seleccionado */}
             <div style={{
-              position: 'absolute', bottom: '1.5rem', left: '1.5rem',
+              position: 'absolute', bottom: '1.5rem', right: '3.5rem',
               background: 'rgba(13,53,66,0.9)', backdropFilter: 'blur(8px)',
               padding: '0.8rem 1.2rem', border: '1px solid rgba(206,162,121,0.2)'
             }}>
@@ -113,16 +171,16 @@ export default function ProyectoPage() {
           </div>
         </div>
 
-        {/* ── PANEL derecho ── */}
+        {/* ── PANEL DERECHO ── */}
         <div className="proyecto-right" style={{ flex: 1, overflowY: 'auto' }}>
 
-          {/* Header con piso + selector tipología */}
+          {/* Header */}
           <div className="proyecto-header" style={{
             padding: '2rem 3rem', borderBottom: '1px solid rgba(206,162,121,0.1)',
             background: '#0A2D38', display: 'flex', alignItems: 'center',
             justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
               <span className="piso-num" style={{
                 fontSize: '5rem', fontWeight: 700, color: 'transparent',
                 WebkitTextStroke: '2px #CEA279', lineHeight: 1
@@ -131,6 +189,15 @@ export default function ProyectoPage() {
                 <p style={{ fontSize: '0.55rem', color: '#7A9BA8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Tipología</p>
                 <p style={{ fontSize: '1.1rem', fontWeight: 600, color: '#F5F0EA', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{dormi} Dormitorios</p>
                 <p style={{ fontSize: '0.9rem', color: '#CEA279' }}>{m2} m²</p>
+                {/* Badge disponibilidad */}
+                {estadoActual && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.4rem' }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: pisoColor(estadoActual) }} />
+                    <span style={{ fontSize: '0.62rem', color: pisoColor(estadoActual), letterSpacing: '0.08em', textTransform: 'capitalize' }}>
+                      {estadoActual === 'disponible' ? 'Disponible' : estadoActual === 'reservado' ? 'Reservado' : 'Vendido'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -150,16 +217,12 @@ export default function ProyectoPage() {
 
           {/* Axo + Características */}
           <div className="proyecto-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-
             <div className="proyecto-axo" style={{
               padding: '3rem', borderRight: '1px solid rgba(206,162,121,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: '#0A2D38', minHeight: '400px'
             }}>
-              {axoUrl && (
-                <img src={axoUrl} alt={'Planta ' + lado}
-                  style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain' }} />
-              )}
+              {axoUrl && <img src={axoUrl} alt={'Planta ' + lado} style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain' }} />}
             </div>
 
             <div className="proyecto-info" style={{ padding: '3rem' }}>
