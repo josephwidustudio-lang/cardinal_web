@@ -122,7 +122,7 @@ export default function ProyectoPage() {
             background: '#0A2D38', display: 'flex', alignItems: 'center',
             justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span className="piso-num" style={{
                 fontSize: '5rem', fontWeight: 700, color: 'transparent',
                 WebkitTextStroke: '2px #CEA279', lineHeight: 1
