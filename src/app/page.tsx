@@ -238,7 +238,9 @@ function UnidadesSection({ filtroPiso, setFiltroPiso }: {
     })
   })
 
-  const filasFiltradas = filtroPiso != null ? filas.filter(f => f.piso === filtroPiso) : filas
+  // Ocultar vendidas — solo mostrar disponibles y reservadas
+  const filasVisibles   = filas.filter(f => f.estado !== 'vendido')
+  const filasFiltradas  = filtroPiso != null ? filasVisibles.filter(f => f.piso === filtroPiso) : filasVisibles
 
   // Conteos
   const totalDisp = filas.filter(f => f.estado === 'disponible').length
