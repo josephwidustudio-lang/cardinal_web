@@ -35,28 +35,43 @@ export default function Home() {
   const [pisos,      setPisos]      = useState<string[]>([])
 
   useEffect(() => {
+    let channel: any
+
     async function cargar() {
       const { data: eds } = await supabase
-        .from('edificios').select('*, unidades(id,estado)')
+        .from('edificios').select('*')
         .eq('activo', true).order('orden')
       setEdificios(eds ?? [])
       if (eds && eds.length > 0) {
         const edificioId = eds[0].id
         const [{ data: uns }, { data: imgs }] = await Promise.all([
           supabase.from('unidades').select('*').eq('edificio_id', edificioId).order('piso'),
-          supabase.from('edificio_imagenes').select('*').eq('edificio_id', edificioId).order('orden'),
+          supabase.from('edificio_imagenes').select('*').eq('edificio_id', edificioId).eq('categoria', 'galeria').order('orden'),
         ])
         setUnidades(uns ?? [])
-        setImagenes(imgs ?? [])
-        const pisosUnicos = Array.from(new Set((uns ?? []).map((u: any) => u.piso).filter(Boolean))) as string[]
-        setPisos(pisosUnicos.sort())
+        setImagenes((imgs ?? []).filter((i: any) => i.url))
+        const pisosUnicos = Array.from(new Set((uns ?? []).map((u: any) => String(u.piso)).filter(Boolean))) as string[]
+        setPisos(pisosUnicos.sort((a, b) => Number(a) - Number(b)))
+
+        // Suscripción en tiempo real — se actualiza cuando cambia estado en admin
+        channel = supabase
+          .channel('unidades-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'unidades', filter: `edificio_id=eq.${edificioId}` },
+            async () => {
+              const { data: fresh } = await supabase.from('unidades').select('*').eq('edificio_id', edificioId).order('piso')
+              if (fresh) setUnidades(fresh)
+            }
+          )
+          .subscribe()
       }
       setLoading(false)
     }
+
     cargar()
+    return () => { if (channel) supabase.removeChannel(channel) }
   }, [])
 
-  const unidadesFiltradas = filtroPiso ? unidades.filter(u => u.piso === filtroPiso) : unidades
+  const unidadesFiltradas = filtroPiso ? unidades.filter(u => String(u.piso) === String(filtroPiso)) : unidades
   const edificio = edificios[0] ?? null
 
   return (
