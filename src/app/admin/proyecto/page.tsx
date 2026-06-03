@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
 const BUCKET = 'imagenes'
+const PISOS = [9,8,7,6,5,4,3,2,1]
 
 type Config = {
   id: string
@@ -29,18 +30,34 @@ export default function AdminProyecto() {
   const [saving, setSaving]   = useState(false)
   const [msg, setMsg]         = useState('')
   const [tab, setTab]         = useState<'info' | 'fotos' | 'tipologias' | 'contacto'>('info')
+  const [pisoSel, setPisoSel] = useState(9)
+  const [unidades, setUnidades] = useState<any[]>([])
+  const [savingU, setSavingU]   = useState<string | null>(null)
 
   const renderRef   = useRef<HTMLInputElement>(null)
   const frenteRef   = useRef<HTMLInputElement>(null)
   const cfRef       = useRef<HTMLInputElement>(null)
 
   useEffect(() => { cargar() }, [])
+  useEffect(() => { cargarUnidades() }, [pisoSel])
 
   async function cargar() {
     setLoading(true)
     const { data } = await supabase.from('proyecto_config').select('*').limit(1).single()
     if (data) setCfg(data)
     setLoading(false)
+  }
+
+  async function cargarUnidades() {
+    const { data } = await supabase.from('unidades').select('*').eq('piso', pisoSel).order('codigo')
+    setUnidades(data ?? [])
+  }
+
+  async function actualizarEstado(id: string, estado: string) {
+    setSavingU(id)
+    await supabase.from('unidades').update({ estado }).eq('id', id)
+    setSavingU(null)
+    cargarUnidades()
   }
 
   async function guardar() {
@@ -215,54 +232,125 @@ export default function AdminProyecto() {
 
       {/* ── TIPOLOGÍAS ── */}
       {tab === 'tipologias' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
-          {(['frente', 'contrafrente'] as const).map(tipo => {
-            const dormKey = `${tipo}_dormitorios` as 'frente_dormitorios' | 'contrafrente_dormitorios'
-            const m2Key   = `${tipo}_m2` as 'frente_m2' | 'contrafrente_m2'
-            const itemsKey = `${tipo}_items` as 'frente_items' | 'contrafrente_items'
-            return (
-              <div key={tipo}>
-                <p style={{ fontSize: '0.72rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-                  {tipo === 'frente' ? 'Frente' : 'Contrafrente'}
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div>
-                    <label style={lbl}>Dormitorios</label>
-                    <input type="number" style={inp} value={cfg[dormKey]}
-                      onChange={e => setCfg({ ...cfg, [dormKey]: parseInt(e.target.value) || 0 })} />
-                  </div>
-                  <div>
-                    <label style={lbl}>Superficie (m²)</label>
-                    <input type="number" style={inp} value={cfg[m2Key]}
-                      onChange={e => setCfg({ ...cfg, [m2Key]: parseInt(e.target.value) || 0 })} />
-                  </div>
-                </div>
-                <p style={{ ...lbl, marginBottom: '0.8rem' }}>Características</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {cfg[itemsKey].map((item, idx) => (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'center' }}>
-                      <input style={{ ...inp, fontSize: '0.78rem' }} value={item[0]}
-                        onChange={e => updateItem(tipo, idx, 0, e.target.value)}
-                        placeholder="Ambiente" />
-                      <input style={{ ...inp, fontSize: '0.78rem' }} value={item[1]}
-                        onChange={e => updateItem(tipo, idx, 1, e.target.value)}
-                        placeholder="Medida" />
-                      <button onClick={() => removeItem(tipo, idx)} style={{
-                        background: 'transparent', border: '1px solid rgba(224,112,112,0.3)',
-                        color: '#E07070', padding: '0.5rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem',
-                      }}>✕</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+
+          {/* ── Selector de piso + disponibilidad ── */}
+          <div style={{ background: '#0D3542', border: '1px solid rgba(206,162,121,0.15)', padding: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.8rem', flexWrap: 'wrap' }}>
+              <p style={{ fontSize: '0.72rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+                Disponibilidad por piso
+              </p>
+              <select
+                value={pisoSel}
+                onChange={e => setPisoSel(Number(e.target.value))}
+                style={{
+                  background: '#0A2D38', color: '#F5F0EA', border: '1px solid rgba(206,162,121,0.3)',
+                  padding: '0.5rem 1rem', fontSize: '0.82rem', cursor: 'pointer',
+                  fontFamily: 'Panton, system-ui, sans-serif', outline: 'none',
+                }}
+              >
+                {PISOS.map(p => <option key={p} value={p}>Piso {p}</option>)}
+              </select>
+            </div>
+
+            {unidades.length === 0 ? (
+              <p style={{ color: '#7A9BA8', fontSize: '0.82rem' }}>No hay unidades registradas para el piso {pisoSel}.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                {unidades.map(u => {
+                  const colores: Record<string, string> = {
+                    disponible: '#5BC47A', reservado: '#CEA279', vendido: '#E07070'
+                  }
+                  const color = colores[u.estado] ?? '#7A9BA8'
+                  return (
+                    <div key={u.id} style={{
+                      background: '#0A2D38', border: `1px solid ${color}30`,
+                      padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.8rem'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <p style={{ fontSize: '0.65rem', color: '#7A9BA8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Unidad</p>
+                          <p style={{ fontSize: '1rem', color: '#F5F0EA', fontWeight: 500 }}>{u.codigo ?? `${u.piso}${u.tipo}`}</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '0.65rem', color: '#7A9BA8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Tipo</p>
+                          <p style={{ fontSize: '0.82rem', color: '#CEA279' }}>{u.tipo}</p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, flexShrink: 0 }} />
+                        <select
+                          value={u.estado}
+                          disabled={savingU === u.id}
+                          onChange={e => actualizarEstado(u.id, e.target.value)}
+                          style={{
+                            flex: 1, background: '#0D3542', color: color,
+                            border: `1px solid ${color}50`, padding: '0.45rem 0.7rem',
+                            fontSize: '0.75rem', cursor: 'pointer', outline: 'none',
+                            fontFamily: 'Panton, system-ui, sans-serif',
+                            opacity: savingU === u.id ? 0.5 : 1,
+                          }}
+                        >
+                          <option value="disponible">Disponible</option>
+                          <option value="reservado">Reservado</option>
+                          <option value="vendido">Vendido</option>
+                        </select>
+                      </div>
+                      {u.m2 && <p style={{ fontSize: '0.7rem', color: '#7A9BA8' }}>{u.m2} m²{u.precio_texto ? ` · ${u.precio_texto}` : ''}</p>}
                     </div>
-                  ))}
-                  <button onClick={() => addItem(tipo)} style={{
-                    background: 'transparent', border: '1px dashed rgba(206,162,121,0.3)',
-                    color: '#CEA279', padding: '0.6rem', fontSize: '0.68rem',
-                    letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                    marginTop: '0.3rem',
-                  }}>+ Agregar fila</button>
-                </div>
+                  )
+                })}
               </div>
-            )
-          })}
+            )}
+          </div>
+
+          {/* ── Características por tipología ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+            {(['frente', 'contrafrente'] as const).map(tipo => {
+              const dormKey  = `${tipo}_dormitorios` as 'frente_dormitorios' | 'contrafrente_dormitorios'
+              const m2Key    = `${tipo}_m2` as 'frente_m2' | 'contrafrente_m2'
+              const itemsKey = `${tipo}_items` as 'frente_items' | 'contrafrente_items'
+              return (
+                <div key={tipo}>
+                  <p style={{ fontSize: '0.72rem', color: '#CEA279', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+                    {tipo === 'frente' ? 'Frente' : 'Contrafrente'}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <label style={lbl}>Dormitorios</label>
+                      <input type="number" style={inp} value={cfg[dormKey]}
+                        onChange={e => setCfg({ ...cfg, [dormKey]: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div>
+                      <label style={lbl}>Superficie (m²)</label>
+                      <input type="number" style={inp} value={cfg[m2Key]}
+                        onChange={e => setCfg({ ...cfg, [m2Key]: parseInt(e.target.value) || 0 })} />
+                    </div>
+                  </div>
+                  <p style={{ ...lbl, marginBottom: '0.8rem' }}>Características</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {cfg[itemsKey].map((item, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                        <input style={{ ...inp, fontSize: '0.78rem' }} value={item[0]}
+                          onChange={e => updateItem(tipo, idx, 0, e.target.value)} placeholder="Ambiente" />
+                        <input style={{ ...inp, fontSize: '0.78rem' }} value={item[1]}
+                          onChange={e => updateItem(tipo, idx, 1, e.target.value)} placeholder="Medida" />
+                        <button onClick={() => removeItem(tipo, idx)} style={{
+                          background: 'transparent', border: '1px solid rgba(224,112,112,0.3)',
+                          color: '#E07070', padding: '0.5rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem',
+                        }}>✕</button>
+                      </div>
+                    ))}
+                    <button onClick={() => addItem(tipo)} style={{
+                      background: 'transparent', border: '1px dashed rgba(206,162,121,0.3)',
+                      color: '#CEA279', padding: '0.6rem', fontSize: '0.68rem',
+                      letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', marginTop: '0.3rem',
+                    }}>+ Agregar fila</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
