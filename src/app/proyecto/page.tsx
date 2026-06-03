@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ChatWidget from '@/components/layout/ChatWidget'
 import { supabase } from '@/lib/supabase'
+import { fetchProyectoConfig } from '@/lib/fetchProyecto'
 
 const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_logotipo.svg'
 const PISOS = [9,8,7,6,5,4,3,2,1]
@@ -16,9 +17,9 @@ export default function ProyectoPage() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('proyecto_config').select('*').limit(1).single(),
-      supabase.from('unidades').select('piso, estado, tipo, m2, dormitorios, items'),
-    ]).then(([{ data: cfgData }, { data: unidades }]) => {
+      fetchProyectoConfig(),
+      supabase.from('unidades').select('piso, estado, tipo, m2, dormitorios, items').then(r => r.data),
+    ]).then(([cfgData, unidades]) => {
       if (cfgData) setCfg(cfgData)
       if (unidades) {
         setAllUnidades(unidades)

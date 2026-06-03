@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
+import { fetchProyectoConfig } from '@/lib/fetchProyecto'
 import { SITE, COLORS } from '@/lib/config'
 import Link from 'next/link'
 import NavMobile from '@/components/layout/NavMobile'
@@ -211,11 +212,7 @@ function UnidadesSection({ filtroPiso, setFiltroPiso }: {
 
   useEffect(() => {
     const fetchCfg = async () => {
-      const { data } = await supabase
-        .from('proyecto_config')
-        .select('*')
-        .limit(1)
-        .single()
+      const data = await fetchProyectoConfig()
       if (data) setCfg(data)
     }
 
