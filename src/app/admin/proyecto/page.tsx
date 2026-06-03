@@ -76,17 +76,14 @@ export default function AdminProyecto() {
     const overrides = JSON.parse(JSON.stringify((cfg as any).pisos_override ?? {}))
     const key = String(pisoSel)
     overrides[key] = overrides[key] ?? {}
+    // Preserva todos los valores existentes, solo actualiza el campo específico
     overrides[key][ladoSel] = {
-      dormitorios: overrides[key][ladoSel]?.dormitorios ?? null,
-      m2:          overrides[key][ladoSel]?.m2 ?? null,
-      cochera:     overrides[key][ladoSel]?.cochera ?? 'incluida',
-      disponible:  overrides[key][ladoSel]?.disponible ?? 'disponible',
-      items:       overrides[key][ladoSel]?.items ?? [],
-      [campo]:     valor,
+      ...(overrides[key][ladoSel] ?? {}),
+      [campo]: valor,
     }
     await supabase.from('proyecto_config').update({ pisos_override: overrides }).eq('id', cfg.id)
     setCfg((prev: any) => prev ? { ...prev, pisos_override: overrides } : prev)
-    setMsg(`✓ Piso ${pisoSel} ${ladoSel} — ${campo} actualizado`)
+    setMsg(`✓ Piso ${pisoSel} — ${campo} guardado`)
   }
 
   // Guarda override de piso en proyecto_config.pisos_override

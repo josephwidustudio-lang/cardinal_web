@@ -44,13 +44,10 @@ export default function ProyectoPage() {
   // Override específico del piso+lado (editado en el panel)
   const pisoOverride = cfg.pisos_override?.[String(piso)]?.[lado] ?? null
 
-  const items     = (pisoOverride?.items != null)
-    ? pisoOverride.items
-    : (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
-  const dormi     = pisoOverride?.dormitorios
-    ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
-  const m2        = pisoOverride?.m2
-    ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
+  const globalItems = lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items
+  const items     = pisoOverride?.items?.length > 0 ? pisoOverride.items : globalItems
+  const dormi     = pisoOverride?.dormitorios ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
+  const m2        = pisoOverride?.m2 ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
   const cochera   = pisoOverride?.cochera ?? 'incluida'
   const dispLabel = pisoOverride?.disponible ?? pisoEstados[piso] ?? 'disponible'
   const axoUrl    = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
