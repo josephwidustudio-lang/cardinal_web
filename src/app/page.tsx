@@ -26,40 +26,38 @@ const BADGE: Record<string, { bg: string; color: string; label: string }> = {
   vendido:    { bg:'rgba(224,112,112,0.12)', color:'#E07070', label:'Vendido'    },
 }
 
+const PISOS_ALL = [9,8,7,6,5,4,3,2,1]
+
 export default function Home() {
-  const [edificios,  setEdificios]  = useState<any[]>([])
-  const [unidades,   setUnidades]   = useState<any[]>([])
-  const [imagenes,   setImagenes]   = useState<any[]>([])
-  const [loading,    setLoading]    = useState(true)
-  const [filtroPiso, setFiltroPiso] = useState('')
-  const [pisos,      setPisos]      = useState<string[]>([])
+  const [proyectoCfg, setProyectoCfg] = useState<any>(null)
+  const [imagenes,    setImagenes]    = useState<any[]>([])
+  const [loading,     setLoading]     = useState(true)
+  const [filtroPiso,  setFiltroPiso]  = useState<number|null>(null)
 
   useEffect(() => {
     let channel: any
 
     async function cargar() {
-      const { data: eds } = await supabase
-        .from('edificios').select('*')
-        .eq('activo', true).order('orden')
-      setEdificios(eds ?? [])
-      if (eds && eds.length > 0) {
-        const edificioId = eds[0].id
-        const [{ data: uns }, { data: imgs }] = await Promise.all([
-          supabase.from('unidades').select('*').eq('edificio_id', edificioId).order('piso'),
-          supabase.from('edificio_imagenes').select('*').eq('edificio_id', edificioId).eq('categoria', 'galeria').order('orden'),
-        ])
-        setUnidades(uns ?? [])
-        setImagenes((imgs ?? []).filter((i: any) => i.url))
-        const pisosUnicos = Array.from(new Set((uns ?? []).map((u: any) => String(u.piso)).filter(Boolean))) as string[]
-        setPisos(pisosUnicos.sort((a, b) => Number(a) - Number(b)))
+      const [{ data: cfg }, { data: eds }] = await Promise.all([
+        supabase.from('proyecto_config').select('*').limit(1).single(),
+        supabase.from('edificios').select('id').eq('activo', true).order('orden').limit(1),
+      ])
+      if (cfg) setProyectoCfg(cfg)
 
-        // Suscripción en tiempo real — se actualiza cuando cambia estado en admin
+      if (eds?.[0]) {
+        const edificioId = eds[0].id
+        const { data: imgs } = await supabase
+          .from('edificio_imagenes').select('*')
+          .eq('edificio_id', edificioId).eq('categoria', 'galeria').order('orden')
+        setImagenes((imgs ?? []).filter((i: any) => i.url))
+
+        // Tiempo real: cuando cambia proyecto_config se actualiza
         channel = supabase
-          .channel('unidades-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'unidades', filter: `edificio_id=eq.${edificioId}` },
+          .channel('proyecto-realtime')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'proyecto_config' },
             async () => {
-              const { data: fresh } = await supabase.from('unidades').select('*').eq('edificio_id', edificioId).order('piso')
-              if (fresh) setUnidades(fresh)
+              const { data: fresh } = await supabase.from('proyecto_config').select('*').limit(1).single()
+              if (fresh) setProyectoCfg(fresh)
             }
           )
           .subscribe()
@@ -70,9 +68,6 @@ export default function Home() {
     cargar()
     return () => { if (channel) supabase.removeChannel(channel) }
   }, [])
-
-  const unidadesFiltradas = filtroPiso ? unidades.filter(u => String(u.piso) === String(filtroPiso)) : unidades
-  const edificio = edificios[0] ?? null
 
   return (
     <main style={{ background: COLORS.bg, minHeight: '100vh', fontFamily: "Panton, system-ui, sans-serif" }}>
@@ -122,108 +117,9 @@ export default function Home() {
       </section>
 
       {/* UNIDADES */}
-      <section id="unidades" style={{ padding: '8rem 2rem', background: '#0A2D38' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <p style={{ fontSize: '0.68rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-              <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
-              Disponibilidad
-              <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
-            </p>
-            <h2 style={{ fontFamily: "Panton, system-ui, sans-serif", fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 300, color: '#F5F0EA', marginBottom: '0.5rem' }}>
-              Unidades disponibles
-            </h2>
-            {edificio && (
-              <p style={{ color: '#7A9BA8', fontSize: '0.85rem' }}>
-                {unidades.filter(u => u.estado === 'disponible').length} disponibles
-                - {unidades.filter(u => u.estado === 'reservado').length} reservadas
-                - {unidades.filter(u => u.estado === 'vendido').length} vendidas
-              </p>
-            )}
-          </div>
-
-          {pisos.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '3rem', flexWrap: 'wrap' }}>
-              <button onClick={() => setFiltroPiso('')} style={{
-                padding: '0.6rem 1.5rem', cursor: 'pointer',
-                background: filtroPiso === '' ? '#CEA279' : 'transparent',
-                border: '1px solid ' + (filtroPiso === '' ? '#CEA279' : 'rgba(206,162,121,0.15)'),
-                color: filtroPiso === '' ? '#fff' : '#7A9BA8',
-                fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-                transition: 'all 0.2s', fontFamily: "Panton, system-ui, sans-serif"
-              }}>Todos</button>
-              {pisos.map(piso => (
-                <button key={piso} onClick={() => setFiltroPiso(piso)} style={{
-                  padding: '0.6rem 1.5rem', cursor: 'pointer',
-                  background: filtroPiso === piso ? '#CEA279' : 'transparent',
-                  border: '1px solid ' + (filtroPiso === piso ? '#CEA279' : 'rgba(206,162,121,0.15)'),
-                  color: filtroPiso === piso ? '#fff' : '#7A9BA8',
-                  fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-                  transition: 'all 0.2s', fontFamily: "Panton, system-ui, sans-serif"
-                }}>Piso {piso}</button>
-              ))}
-            </div>
-          )}
-
-          {loading ? (
-            <p style={{ textAlign: 'center', color: '#7A9BA8' }}>Cargando...</p>
-          ) : unidadesFiltradas.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#7A9BA8', padding: '3rem' }}>No hay unidades en este piso.</p>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['Unidad','Tipo','Piso','m2','Precio','Estado',''].map(h => (
-                      <th key={h} style={{
-                        textAlign: 'left', padding: '0.8rem 1.2rem',
-                        fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-                        color: '#7A9BA8', borderBottom: '1px solid rgba(206,162,121,0.15)'
-                      }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {unidadesFiltradas.map(u => (
-                    <tr key={u.id} style={{ borderBottom: '1px solid rgba(206,162,121,0.08)' }}>
-                      <td style={{ padding: '1rem 1.2rem', color: '#F5F0EA', fontWeight: 500 }}>{u.codigo}</td>
-                      <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>{TIPO_LABEL[u.tipo] ?? u.tipo}</td>
-                      <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>{u.piso ?? '-'}</td>
-                      <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>{u.m2 ? u.m2 + ' m2' : '-'}</td>
-                      <td style={{ padding: '1rem 1.2rem', color: '#F5F0EA', fontWeight: 500 }}>{u.precio_texto ?? '-'}</td>
-                      <td style={{ padding: '1rem 1.2rem' }}>
-                        <span style={{
-                          display: 'inline-block', padding: '0.3rem 0.8rem',
-                          fontSize: '0.6rem', fontWeight: 500, letterSpacing: '0.15em', textTransform: 'uppercase',
-                          background: BADGE[u.estado]?.bg, color: BADGE[u.estado]?.color
-                        }}>{BADGE[u.estado]?.label ?? u.estado}</span>
-                      </td>
-                      <td style={{ padding: '1rem 1.2rem' }}>
-                        {u.estado === 'disponible' && (
-                          <a href={"https://wa.me/" + SITE.wa + "?text=Hola, me interesa la Unidad " + u.codigo + " - Piso " + u.piso}
-                            target="_blank" style={{ fontSize: '0.68rem', color: '#CEA279', textDecoration: 'none', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
-                            Consultar
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {edificio && (
-            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-              <Link href={"/edificio/" + edificio.id + "/axo"} style={{
-                border: '1px solid rgba(206,162,121,0.3)', color: '#CEA279',
-                padding: '1rem 2.5rem', fontSize: '0.82rem', letterSpacing: '0.12em',
-                textTransform: 'uppercase', textDecoration: 'none', display: 'inline-block'
-              }}>Ver planta 3D interactiva</Link>
-            </div>
-          )}
-        </div>
-      </section>
+      {proyectoCfg && (
+        <UnidadesSection cfg={proyectoCfg} filtroPiso={filtroPiso} setFiltroPiso={setFiltroPiso} />
+      )}
 
       {/* GALERIA */}
       {imagenes.length > 0 && (
@@ -316,6 +212,162 @@ export default function Home() {
       <ChatWidget mode="floating" />
 
     </main>
+  )
+}
+
+// ── UNIDADES SECTION ─────────────────────────────────────────────────────────
+const ESTADO_COLOR: Record<string, string> = {
+  disponible: '#5BC47A', reservado: '#CEA279', vendido: '#E07070'
+}
+const ESTADO_LABEL_MAP: Record<string, string> = {
+  disponible: 'Disponible', reservado: 'Reservado', vendido: 'Vendido'
+}
+
+function UnidadesSection({ cfg, filtroPiso, setFiltroPiso }: {
+  cfg: any
+  filtroPiso: number | null
+  setFiltroPiso: (p: number | null) => void
+}) {
+  const overrides = cfg.pisos_override ?? {}
+  const wa = cfg.wa_number ?? ''
+
+  // Construir lista de filas: piso x lado
+  const filas = PISOS_ALL.flatMap(piso => {
+    return (['frente', 'contrafrente'] as const).map(lado => {
+      const ov = overrides[String(piso)]?.[lado] ?? {}
+      const dormi    = ov.dormitorios ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
+      const m2       = ov.m2 ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
+      const cochera  = ov.cochera ?? 'incluida'
+      const estado   = ov.disponible ?? 'disponible'
+      return { piso, lado, dormi, m2, cochera, estado }
+    })
+  })
+
+  const filasFiltradas = filtroPiso != null ? filas.filter(f => f.piso === filtroPiso) : filas
+
+  // Conteos
+  const totalDisp = filas.filter(f => f.estado === 'disponible').length
+  const totalRes  = filas.filter(f => f.estado === 'reservado').length
+  const totalVend = filas.filter(f => f.estado === 'vendido').length
+
+  return (
+    <section id="unidades" style={{ padding: '8rem 2rem', background: '#0A2D38' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <p style={{ fontSize: '0.68rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#CEA279', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+            <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
+            Disponibilidad
+            <span style={{ width: '30px', height: '1px', background: '#CEA279', display: 'block' }} />
+          </p>
+          <h2 style={{ fontFamily: 'Panton, system-ui, sans-serif', fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 300, color: '#F5F0EA', marginBottom: '1rem' }}>
+            Unidades disponibles
+          </h2>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Disponibles', count: totalDisp, color: '#5BC47A' },
+              { label: 'Reservadas',  count: totalRes,  color: '#CEA279' },
+              { label: 'Vendidas',    count: totalVend,  color: '#E07070' },
+            ].map(s => (
+              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.color }} />
+                <span style={{ fontSize: '0.82rem', color: '#7A9BA8' }}>
+                  <strong style={{ color: s.color }}>{s.count}</strong> {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtro por piso */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+          <button onClick={() => setFiltroPiso(null)} style={{
+            padding: '0.5rem 1.2rem', cursor: 'pointer',
+            background: filtroPiso === null ? '#CEA279' : 'transparent',
+            border: '1px solid ' + (filtroPiso === null ? '#CEA279' : 'rgba(206,162,121,0.2)'),
+            color: filtroPiso === null ? '#0A2D38' : '#7A9BA8',
+            fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontFamily: 'Panton, system-ui, sans-serif', fontWeight: filtroPiso === null ? 600 : 400,
+          }}>Todos</button>
+          {PISOS_ALL.map(p => (
+            <button key={p} onClick={() => setFiltroPiso(p)} style={{
+              padding: '0.5rem 1rem', cursor: 'pointer',
+              background: filtroPiso === p ? '#CEA279' : 'transparent',
+              border: '1px solid ' + (filtroPiso === p ? '#CEA279' : 'rgba(206,162,121,0.2)'),
+              color: filtroPiso === p ? '#0A2D38' : '#7A9BA8',
+              fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+              fontFamily: 'Panton, system-ui, sans-serif', fontWeight: filtroPiso === p ? 600 : 400,
+            }}>{p}</button>
+          ))}
+        </div>
+
+        {/* Tabla */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                {['Piso', 'Tipología', 'Dormitorios', 'Superficie', 'Cochera', 'Estado', ''].map(h => (
+                  <th key={h} style={{
+                    textAlign: 'left', padding: '0.8rem 1.2rem',
+                    fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+                    color: '#7A9BA8', borderBottom: '1px solid rgba(206,162,121,0.15)'
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filasFiltradas.map((f, i) => {
+                const color = ESTADO_COLOR[f.estado] ?? '#7A9BA8'
+                return (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(206,162,121,0.07)', transition: 'background 0.2s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(206,162,121,0.04)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <td style={{ padding: '1rem 1.2rem', color: '#CEA279', fontWeight: 600, fontSize: '1.1rem' }}>{f.piso}</td>
+                    <td style={{ padding: '1rem 1.2rem', color: '#F5F0EA', fontWeight: 500 }}>
+                      {f.lado === 'frente' ? 'Frente' : 'Contrafrente'}
+                    </td>
+                    <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>{f.dormi}</td>
+                    <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>{f.m2} m²</td>
+                    <td style={{ padding: '1rem 1.2rem', color: '#7A9BA8' }}>
+                      {f.cochera === 'incluida' ? 'Incluida' : f.cochera === 'no_incluida' ? 'No incluida' : 'Opcional'}
+                    </td>
+                    <td style={{ padding: '1rem 1.2rem' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        padding: '0.3rem 0.8rem', fontSize: '0.6rem',
+                        letterSpacing: '0.15em', textTransform: 'uppercase',
+                        background: color + '18', color,
+                      }}>
+                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: color }} />
+                        {ESTADO_LABEL_MAP[f.estado] ?? f.estado}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem 1.2rem' }}>
+                      {f.estado === 'disponible' && (
+                        <a href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hola, me interesa el Piso ${f.piso} - ${f.lado === 'frente' ? 'Frente' : 'Contrafrente'} de ${cfg.nombre}`)}`}
+                          target="_blank" style={{ fontSize: '0.68rem', color: '#CEA279', textDecoration: 'none', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+                          Consultar →
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* CTA */}
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+          <Link href="/proyecto" style={{
+            border: '1px solid rgba(206,162,121,0.3)', color: '#CEA279',
+            padding: '1rem 2.5rem', fontSize: '0.75rem', letterSpacing: '0.15em',
+            textTransform: 'uppercase', textDecoration: 'none', display: 'inline-block',
+          }}>Ver plantas y detalles →</Link>
+        </div>
+      </div>
+    </section>
   )
 }
 
