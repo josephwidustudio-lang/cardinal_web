@@ -149,11 +149,14 @@ function ProyectoPageInner() {
             <p style={{ fontSize: '0.72rem', color: '#7A9BA8' }}>{cfg.descripcion}</p>
           </div>
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-            {cfg.render_url && (
-              <img src={cfg.render_url} alt={cfg.nombre}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
-            )}
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,45,56,0.2)' }} />
+            {/* Imagen del edificio: cambia según el piso seleccionado */}
+            <img
+              key={`edificio-${animKey}`}
+              src={`/edificio/${piso + 1}-100.jpg`}
+              alt={`Piso ${piso}`}
+              className="axo-img"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+            />
 
             {/* Panel selector de pisos — columna derecha */}
             <div style={{
