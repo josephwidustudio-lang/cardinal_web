@@ -165,7 +165,7 @@ function ProyectoPageInner() {
             }}>
               {/* SUM / Terraza — techo del edificio, no clickeable */}
               <div style={{
-                flex: 0.7,
+                flex: 1.1,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: '3px',
                 borderBottom: '1px solid rgba(206,162,121,0.2)',
@@ -226,7 +226,7 @@ function ProyectoPageInner() {
 
               {/* PB / Hall — planta baja, no clickeable */}
               <div style={{
-                flex: 1.6,
+                flex: 1.0,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: '3px',
                 borderTop: '1px solid rgba(206,162,121,0.2)',
