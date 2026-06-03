@@ -103,12 +103,16 @@ export default function AdminProyecto() {
   useEffect(() => {
     if (!cfg) return
     const ov = ((cfg as any).pisos_override ?? {})[String(pisoSel)]?.[ladoSel]
+    const globalItems = ladoSel === 'frente' ? cfg.frente_items : cfg.contrafrente_items
+    const globalDormLocal = ladoSel === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios
+    const globalM2Local   = ladoSel === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2
     setPisoCfg({
-      dormitorios: ov?.dormitorios ?? '',
-      m2:          ov?.m2 ?? '',
+      dormitorios: ov?.dormitorios ?? globalDormLocal,
+      m2:          ov?.m2 ?? globalM2Local,
       cochera:     ov?.cochera ?? 'incluida',
       disponible:  ov?.disponible ?? 'disponible',
-      items:       ov?.items ?? [],
+      // Si hay override con items, usarlos; sino copiar del global para editar fácil
+      items:       ov?.items?.length > 0 ? ov.items : (globalItems ?? []).map((i: any) => [...i]),
     })
   }, [pisoSel, ladoSel, cfg])
 

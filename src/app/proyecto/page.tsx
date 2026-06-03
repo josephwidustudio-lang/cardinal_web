@@ -44,7 +44,7 @@ export default function ProyectoPage() {
   // Override específico del piso+lado (editado en el panel)
   const pisoOverride = cfg.pisos_override?.[String(piso)]?.[lado] ?? null
 
-  const items     = pisoOverride?.items?.length > 0
+  const items     = (pisoOverride?.items != null)
     ? pisoOverride.items
     : (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
   const dormi     = pisoOverride?.dormitorios
