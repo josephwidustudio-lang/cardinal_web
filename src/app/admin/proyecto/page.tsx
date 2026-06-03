@@ -80,6 +80,8 @@ export default function AdminProyecto() {
     overrides[key][ladoSel] = {
       dormitorios: pisoCfg.dormitorios != null && pisoCfg.dormitorios !== '' ? Number(pisoCfg.dormitorios) : null,
       m2:          pisoCfg.m2 != null && pisoCfg.m2 !== '' ? Number(pisoCfg.m2) : null,
+      cochera:     pisoCfg.cochera ?? 'incluida',
+      disponible:  pisoCfg.disponible ?? 'disponible',
       items:       pisoCfg.items ?? [],
     }
     const { error } = await supabase.from('proyecto_config')
@@ -96,7 +98,7 @@ export default function AdminProyecto() {
   const globalDorm  = ladoSel === 'frente' ? cfg?.frente_dormitorios : cfg?.contrafrente_dormitorios
   const globalM2    = ladoSel === 'frente' ? cfg?.frente_m2 : cfg?.contrafrente_m2
 
-  const [pisoCfg, setPisoCfg] = useState<any>({ dormitorios: '', m2: '', items: [] })
+  const [pisoCfg, setPisoCfg] = useState<any>({ dormitorios: '', m2: '', cochera: 'incluida', disponible: 'disponible', items: [] })
 
   useEffect(() => {
     if (!cfg) return
@@ -104,6 +106,8 @@ export default function AdminProyecto() {
     setPisoCfg({
       dormitorios: ov?.dormitorios ?? '',
       m2:          ov?.m2 ?? '',
+      cochera:     ov?.cochera ?? 'incluida',
+      disponible:  ov?.disponible ?? 'disponible',
       items:       ov?.items ?? [],
     })
   }, [pisoSel, ladoSel, cfg])
@@ -307,7 +311,7 @@ export default function AdminProyecto() {
             </div>
 
             {/* ── Editor de info del piso ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
               <div>
                 <label style={lbl}>Dormitorios</label>
                 <input type="number" style={inp} value={pisoCfg.dormitorios}
@@ -319,6 +323,24 @@ export default function AdminProyecto() {
                 <input type="number" style={inp} value={pisoCfg.m2 ?? ''}
                   placeholder={String(globalM2)}
                   onChange={e => setPisoCfg((p: any) => ({ ...p, m2: e.target.value !== '' ? parseInt(e.target.value) : null }))} />
+              </div>
+              <div>
+                <label style={lbl}>Cochera</label>
+                <select value={pisoCfg.cochera} onChange={e => setPisoCfg((p: any) => ({ ...p, cochera: e.target.value }))}
+                  style={{ ...inp, cursor: 'pointer' }}>
+                  <option value="incluida">Incluida</option>
+                  <option value="no_incluida">No incluida</option>
+                  <option value="opcional">Opcional</option>
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>Disponibilidad</label>
+                <select value={pisoCfg.disponible} onChange={e => setPisoCfg((p: any) => ({ ...p, disponible: e.target.value }))}
+                  style={{ ...inp, cursor: 'pointer', color: pisoCfg.disponible === 'disponible' ? '#5BC47A' : pisoCfg.disponible === 'reservado' ? '#CEA279' : '#E07070' }}>
+                  <option value="disponible">Disponible</option>
+                  <option value="reservado">Reservado</option>
+                  <option value="vendido">Vendido</option>
+                </select>
               </div>
             </div>
             <label style={{ ...lbl, marginBottom: '0.6rem' }}>Características del piso</label>

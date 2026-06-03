@@ -44,16 +44,21 @@ export default function ProyectoPage() {
   // Override específico del piso+lado (editado en el panel)
   const pisoOverride = cfg.pisos_override?.[String(piso)]?.[lado] ?? null
 
-  // Items, dormitorios y m2: usa override del piso si existe, sino los globales
-  const items  = pisoOverride?.items?.length > 0
+  const items     = pisoOverride?.items?.length > 0
     ? pisoOverride.items
     : (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
-  const dormi  = pisoOverride?.dormitorios
+  const dormi     = pisoOverride?.dormitorios
     ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
-  const m2     = pisoOverride?.m2
+  const m2        = pisoOverride?.m2
     ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
-  const axoUrl = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
-  const wa     = cfg.wa_number || ''
+  const cochera   = pisoOverride?.cochera ?? 'incluida'
+  const dispLabel = pisoOverride?.disponible ?? pisoEstados[piso] ?? 'disponible'
+  const axoUrl    = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
+  const wa        = cfg.wa_number || ''
+
+  const cocheraLabel = cochera === 'incluida' ? 'Incluida' : cochera === 'no_incluida' ? 'No incluida' : 'Opcional'
+  const dispColor    = dispLabel === 'disponible' ? '#5BC47A' : dispLabel === 'reservado' ? '#CEA279' : '#E07070'
+  const dispText     = dispLabel === 'disponible' ? 'Disponible' : dispLabel === 'reservado' ? 'Reservado' : 'Vendido'
 
   function pisoColor(estado: string) {
     if (estado === 'disponible') return '#5BC47A'
@@ -248,11 +253,16 @@ export default function ProyectoPage() {
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', marginTop: '2rem', background: 'rgba(206,162,121,0.1)' }}>
-                {[['Dormitorios', String(dormi)], ['Superficie', m2 + ' m²'], ['Cochera', 'Incluida']].map(s => (
-                  <div key={s[0]} style={{ padding: '1.2rem', background: '#0D3542', textAlign: 'center' }}>
-                    <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#CEA279', lineHeight: 1 }}>{s[1]}</p>
-                    <p style={{ fontSize: '0.58rem', color: '#7A9BA8', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '0.3rem' }}>{s[0]}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', marginTop: '2rem', background: 'rgba(206,162,121,0.1)' }}>
+                {[
+                  { label: 'Dormitorios', value: String(dormi), color: '#CEA279' },
+                  { label: 'Superficie',  value: m2 + ' m²',    color: '#CEA279' },
+                  { label: 'Cochera',     value: cocheraLabel,   color: cochera === 'no_incluida' ? '#E07070' : '#CEA279' },
+                  { label: 'Estado',      value: dispText,       color: dispColor },
+                ].map(s => (
+                  <div key={s.label} style={{ padding: '1.2rem', background: '#0D3542', textAlign: 'center' }}>
+                    <p style={{ fontSize: '1rem', fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</p>
+                    <p style={{ fontSize: '0.55rem', color: '#7A9BA8', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '0.3rem' }}>{s.label}</p>
                   </div>
                 ))}
               </div>
