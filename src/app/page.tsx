@@ -66,7 +66,18 @@ export default function Home() {
     }
 
     cargar()
-    return () => { if (channel) supabase.removeChannel(channel) }
+
+    // Refresh al volver a la pestaña (fallback si real-time no funciona)
+    const onFocus = () => {
+      supabase.from('proyecto_config').select('*').limit(1).single()
+        .then(({ data }) => { if (data) setProyectoCfg(data) })
+    }
+    window.addEventListener('focus', onFocus)
+
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+      window.removeEventListener('focus', onFocus)
+    }
   }, [])
 
   return (
