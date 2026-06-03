@@ -163,6 +163,18 @@ function ProyectoPageInner() {
               background: 'rgba(6,26,33,0.82)', backdropFilter: 'blur(12px)',
               borderLeft: '1px solid rgba(206,162,121,0.15)',
             }}>
+              {/* SUM / Terraza — techo del edificio, no clickeable */}
+              <div style={{
+                flex: 0.7,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: '3px',
+                borderBottom: '1px solid rgba(206,162,121,0.2)',
+              }}>
+                <span style={{ fontSize: '0.45rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(206,162,121,0.45)' }}>SUM</span>
+                <span style={{ fontSize: '0.4rem', letterSpacing: '0.1em', color: 'rgba(206,162,121,0.25)', textTransform: 'uppercase' }}>Terraza</span>
+              </div>
+
+              {/* Pisos 9 → 1 */}
               {PISOS.map((p, idx) => {
                 const est    = pisoEstados[p]
                 const color  = pisoColor(est)
@@ -173,7 +185,7 @@ function ProyectoPageInner() {
                     onClick={() => changePiso(p)}
                     style={{
                       flex: 1, width: '100%', border: 'none',
-                      borderTop: idx === 0 ? 'none' : '1px solid rgba(206,162,121,0.08)',
+                      borderTop: '1px solid rgba(206,162,121,0.08)',
                       cursor: 'pointer',
                       background: active ? `${color}28` : 'transparent',
                       boxShadow: active ? `inset 0 0 20px ${color}22` : 'none',
@@ -183,12 +195,10 @@ function ProyectoPageInner() {
                       position: 'relative',
                     }}
                   >
-                    {/* Borde izquierdo activo */}
                     {active && (
                       <div style={{
                         position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
-                        background: color,
-                        boxShadow: `0 0 10px ${color}`,
+                        background: color, boxShadow: `0 0 10px ${color}`,
                       }} />
                     )}
                     <span style={{
@@ -213,6 +223,17 @@ function ProyectoPageInner() {
                   </button>
                 )
               })}
+
+              {/* PB / Hall — planta baja, no clickeable */}
+              <div style={{
+                flex: 1.6,
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: '3px',
+                borderTop: '1px solid rgba(206,162,121,0.2)',
+              }}>
+                <span style={{ fontSize: '0.5rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(206,162,121,0.45)' }}>PB</span>
+                <span style={{ fontSize: '0.4rem', letterSpacing: '0.1em', color: 'rgba(206,162,121,0.25)', textTransform: 'uppercase' }}>Hall</span>
+              </div>
             </div>
 
             {/* Leyenda */}
