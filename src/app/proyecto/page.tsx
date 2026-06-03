@@ -8,19 +8,20 @@ const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/
 const PISOS = [9,8,7,6,5,4,3,2,1]
 
 export default function ProyectoPage() {
-  const [piso, setPiso]         = useState(9)
-  const [lado, setLado]         = useState<'frente' | 'contrafrente'>('frente')
-  const [cfg, setCfg]           = useState<any>(null)
+  const [piso, setPiso]               = useState(9)
+  const [lado, setLado]               = useState<'frente' | 'contrafrente'>('frente')
+  const [cfg, setCfg]                 = useState<any>(null)
   const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
+  const [allUnidades, setAllUnidades] = useState<any[]>([])
 
   useEffect(() => {
     Promise.all([
       supabase.from('proyecto_config').select('*').limit(1).single(),
-      supabase.from('unidades').select('piso, estado'),
+      supabase.from('unidades').select('piso, estado, tipo, m2, dormitorios, items'),
     ]).then(([{ data: cfgData }, { data: unidades }]) => {
       if (cfgData) setCfg(cfgData)
       if (unidades) {
-        // Por piso: si hay alguna disponible → verde, solo reservadas → amarillo, todas vendidas → rojo
+        setAllUnidades(unidades)
         const map: Record<number, string> = {}
         PISOS.forEach(p => {
           const del_piso = unidades.filter(u => u.piso === p)
@@ -40,9 +41,17 @@ export default function ProyectoPage() {
     </main>
   )
 
-  const items  = lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items
-  const dormi  = lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios
-  const m2     = lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2
+  // Unidad específica del piso+lado seleccionado
+  const unidadActual = allUnidades.find(u => u.piso === piso && u.tipo === lado)
+    ?? allUnidades.find(u => u.piso === piso) // fallback: cualquier unidad del piso
+
+  // Items y dormitorios: usa los de la unidad si existen, sino los globales
+  const items  = (unidadActual?.items?.length > 0 ? unidadActual.items : null)
+    ?? (lado === 'frente' ? cfg.frente_items : cfg.contrafrente_items)
+  const dormi  = unidadActual?.dormitorios
+    ?? (lado === 'frente' ? cfg.frente_dormitorios : cfg.contrafrente_dormitorios)
+  const m2     = unidadActual?.m2
+    ?? (lado === 'frente' ? cfg.frente_m2 : cfg.contrafrente_m2)
   const axoUrl = lado === 'frente' ? cfg.frente_axo_url : cfg.contrafrente_axo_url
   const wa     = cfg.wa_number || ''
 

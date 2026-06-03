@@ -60,6 +60,34 @@ export default function AdminProyecto() {
     cargarUnidades()
   }
 
+  async function actualizarUnidad(id: string, fields: Record<string, any>) {
+    setSavingU(id)
+    await supabase.from('unidades').update(fields).eq('id', id)
+    setSavingU(null)
+    cargarUnidades()
+  }
+
+  function updateUnidadItem(uid: string, idx: number, col: 0 | 1, val: string) {
+    setUnidades(prev => prev.map(u => {
+      if (u.id !== uid) return u
+      const items = [...(u.items ?? [])]
+      items[idx] = col === 0 ? [val, items[idx]?.[1] ?? ''] : [items[idx]?.[0] ?? '', val]
+      return { ...u, items }
+    }))
+  }
+
+  function addUnidadItem(uid: string) {
+    setUnidades(prev => prev.map(u =>
+      u.id === uid ? { ...u, items: [...(u.items ?? []), ['', '']] } : u
+    ))
+  }
+
+  function removeUnidadItem(uid: string, idx: number) {
+    setUnidades(prev => prev.map(u =>
+      u.id === uid ? { ...u, items: (u.items ?? []).filter((_: any, i: number) => i !== idx) } : u
+    ))
+  }
+
   async function guardar() {
     if (!cfg) return
     setSaving(true)
@@ -256,47 +284,96 @@ export default function AdminProyecto() {
             {unidades.length === 0 ? (
               <p style={{ color: '#7A9BA8', fontSize: '0.82rem' }}>No hay unidades registradas para el piso {pisoSel}.</p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {unidades.map(u => {
-                  const colores: Record<string, string> = {
-                    disponible: '#5BC47A', reservado: '#CEA279', vendido: '#E07070'
-                  }
+                  const colores: Record<string, string> = { disponible: '#5BC47A', reservado: '#CEA279', vendido: '#E07070' }
                   const color = colores[u.estado] ?? '#7A9BA8'
+                  const isSaving = savingU === u.id
+                  const items: [string,string][] = u.items ?? []
                   return (
-                    <div key={u.id} style={{
-                      background: '#0A2D38', border: `1px solid ${color}30`,
-                      padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.8rem'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={u.id} style={{ background: '#0A2D38', border: `1px solid ${color}30`, padding: '1.5rem' }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
                         <div>
-                          <p style={{ fontSize: '0.65rem', color: '#7A9BA8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Unidad</p>
-                          <p style={{ fontSize: '1rem', color: '#F5F0EA', fontWeight: 500 }}>{u.codigo ?? `${u.piso}${u.tipo}`}</p>
+                          <p style={{ fontSize: '0.6rem', color: '#7A9BA8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Unidad</p>
+                          <p style={{ fontSize: '1.1rem', color: '#F5F0EA', fontWeight: 500 }}>{u.codigo ?? `${u.piso}${u.tipo}`}</p>
+                          <p style={{ fontSize: '0.72rem', color: '#CEA279', marginTop: '0.1rem' }}>{u.tipo} · {u.m2} m²</p>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '0.65rem', color: '#7A9BA8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Tipo</p>
-                          <p style={{ fontSize: '0.82rem', color: '#CEA279' }}>{u.tipo}</p>
+                        {/* Estado */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                          <select value={u.estado} disabled={isSaving}
+                            onChange={e => actualizarEstado(u.id, e.target.value)}
+                            style={{
+                              background: '#0D3542', color, border: `1px solid ${color}50`,
+                              padding: '0.45rem 0.7rem', fontSize: '0.75rem', cursor: 'pointer',
+                              outline: 'none', fontFamily: 'Panton, system-ui, sans-serif',
+                              opacity: isSaving ? 0.5 : 1,
+                            }}>
+                            <option value="disponible">Disponible</option>
+                            <option value="reservado">Reservado</option>
+                            <option value="vendido">Vendido</option>
+                          </select>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, flexShrink: 0 }} />
-                        <select
-                          value={u.estado}
-                          disabled={savingU === u.id}
-                          onChange={e => actualizarEstado(u.id, e.target.value)}
-                          style={{
-                            flex: 1, background: '#0D3542', color: color,
-                            border: `1px solid ${color}50`, padding: '0.45rem 0.7rem',
-                            fontSize: '0.75rem', cursor: 'pointer', outline: 'none',
-                            fontFamily: 'Panton, system-ui, sans-serif',
-                            opacity: savingU === u.id ? 0.5 : 1,
-                          }}
-                        >
-                          <option value="disponible">Disponible</option>
-                          <option value="reservado">Reservado</option>
-                          <option value="vendido">Vendido</option>
-                        </select>
+
+                      {/* Dormitorios */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem', marginBottom: '1.2rem', alignItems: 'center' }}>
+                        <div>
+                          <label style={lbl}>Dormitorios</label>
+                          <input type="number" style={{ ...inp, width: '80px' }}
+                            value={u.dormitorios ?? ''}
+                            placeholder="—"
+                            onChange={e => setUnidades(prev => prev.map(x => x.id === u.id ? { ...x, dormitorios: parseInt(e.target.value) || null } : x))}
+                            onBlur={e => actualizarUnidad(u.id, { dormitorios: parseInt(e.target.value) || null })}
+                          />
+                        </div>
+                        <p style={{ fontSize: '0.68rem', color: '#7A9BA8', marginTop: '1.2rem' }}>
+                          Si está vacío usa el valor global de la tipología
+                        </p>
                       </div>
-                      {u.m2 && <p style={{ fontSize: '0.7rem', color: '#7A9BA8' }}>{u.m2} m²{u.precio_texto ? ` · ${u.precio_texto}` : ''}</p>}
+
+                      {/* Items / Características */}
+                      <div>
+                        <label style={{ ...lbl, marginBottom: '0.6rem' }}>Características específicas</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.6rem' }}>
+                          {items.map((item, idx) => (
+                            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.4rem', alignItems: 'center' }}>
+                              <input style={{ ...inp, fontSize: '0.75rem' }} value={item[0]}
+                                onChange={e => updateUnidadItem(u.id, idx, 0, e.target.value)}
+                                placeholder="Ambiente" />
+                              <input style={{ ...inp, fontSize: '0.75rem' }} value={item[1]}
+                                onChange={e => updateUnidadItem(u.id, idx, 1, e.target.value)}
+                                placeholder="Medida" />
+                              <button onClick={() => removeUnidadItem(u.id, idx)} style={{
+                                background: 'transparent', border: '1px solid rgba(224,112,112,0.3)',
+                                color: '#E07070', padding: '0.4rem 0.6rem', cursor: 'pointer', fontSize: '0.8rem',
+                              }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.6rem' }}>
+                          <button onClick={() => addUnidadItem(u.id)} style={{
+                            background: 'transparent', border: '1px dashed rgba(206,162,121,0.3)',
+                            color: '#CEA279', padding: '0.4rem 0.8rem', fontSize: '0.65rem',
+                            letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                          }}>+ Agregar fila</button>
+                          <button onClick={() => actualizarUnidad(u.id, { items: u.items ?? [] })}
+                            disabled={isSaving}
+                            style={{
+                              background: '#CEA279', border: 'none', color: '#0A2D38',
+                              padding: '0.4rem 1rem', fontSize: '0.65rem',
+                              letterSpacing: '0.1em', textTransform: 'uppercase',
+                              cursor: isSaving ? 'default' : 'pointer', opacity: isSaving ? 0.6 : 1,
+                              fontFamily: 'Panton, system-ui, sans-serif',
+                            }}>
+                            {isSaving ? '...' : 'Guardar'}
+                          </button>
+                        </div>
+                        <p style={{ fontSize: '0.65rem', color: '#7A9BA8', marginTop: '0.5rem' }}>
+                          Si está vacío usa las características globales de la tipología
+                        </p>
+                      </div>
                     </div>
                   )
                 })}
