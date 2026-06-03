@@ -155,64 +155,60 @@ function ProyectoPageInner() {
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,45,56,0.2)' }} />
 
-            {/* Selector de pisos — sección arquitectónica */}
-            <div className="pisos-selector" style={{
-              position: 'absolute', right: '1rem', top: '50%',
-              transform: 'translateY(-50%)',
-              display: 'flex', flexDirection: 'column',
-              background: 'rgba(8,34,43,0.88)', backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(206,162,121,0.18)',
-              overflow: 'hidden',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            }}>
-              {/* Techo del edificio */}
-              <div style={{ height: '4px', background: 'linear-gradient(90deg, transparent, #CEA279, transparent)', opacity: 0.6 }} />
-
-              {PISOS.map((p, idx) => {
-                const est = pisoEstados[p]
-                const dot = pisoColor(est)
-                const active = piso === p
-                const isTop = idx === 0
-                return (
+            {/* Bandas de piso sobre el edificio */}
+            {PISOS.map(p => {
+              const est   = pisoEstados[p]
+              const dot   = pisoColor(est)
+              const active = piso === p
+              // posición vertical de cada piso en la imagen (% desde arriba)
+              const bandMap: Record<number, { top: number; height: number; labelY: number }> = {
+                9: { top: 10,  height: 8.5,  labelY: 13.5 },
+                8: { top: 18.5,height: 8.5,  labelY: 22.5 },
+                7: { top: 27,  height: 8.5,  labelY: 31   },
+                6: { top: 35.5,height: 8.5,  labelY: 39.5 },
+                5: { top: 44,  height: 8.5,  labelY: 48   },
+                4: { top: 52.5,height: 8.5,  labelY: 56.5 },
+                3: { top: 61,  height: 8.5,  labelY: 65   },
+                2: { top: 69.5,height: 8.5,  labelY: 73.5 },
+                1: { top: 78,  height: 10,   labelY: 83   },
+              }
+              const pos = bandMap[p]
+              return (
+                <div key={p}>
+                  {/* Banda iluminada — solo visible cuando activo */}
+                  {active && (
+                    <div style={{
+                      position: 'absolute', left: 0, right: 0,
+                      top: `${pos.top}%`, height: `${pos.height}%`,
+                      background: `linear-gradient(90deg, transparent 0%, ${dot}22 30%, ${dot}44 60%, transparent 100%)`,
+                      borderTop: `1px solid ${dot}55`,
+                      borderBottom: `1px solid ${dot}55`,
+                      pointerEvents: 'none',
+                      transition: 'opacity 0.3s',
+                    }} />
+                  )}
+                  {/* Número del piso — clickeable, posicionado sobre el edificio */}
                   <button
-                    key={p}
-                    className={`piso-bar${active ? ' active' : ''}`}
                     onClick={() => changePiso(p)}
                     style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      gap: '0.6rem', padding: '0.45rem 0.75rem',
-                      background: active ? 'rgba(206,162,121,0.18)' : 'transparent',
-                      border: 'none',
-                      borderTop: isTop ? 'none' : '1px solid rgba(206,162,121,0.08)',
-                      borderLeft: active ? '2px solid #CEA279' : '2px solid transparent',
-                      color: active ? '#CEA279' : 'rgba(206,162,121,0.55)',
-                      fontSize: '0.65rem', fontWeight: active ? 700 : 400,
+                      position: 'absolute',
+                      top: `${pos.labelY}%`,
+                      right: '14%',
+                      transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', padding: 0,
                       cursor: 'pointer', fontFamily: 'Panton, system-ui, sans-serif',
-                      minWidth: '64px', textAlign: 'left',
+                      fontSize: active ? '1.35rem' : '0.9rem',
+                      fontWeight: active ? 700 : 400,
+                      color: active ? dot : 'rgba(245,240,234,0.55)',
+                      textShadow: active ? `0 0 14px ${dot}, 0 0 28px ${dot}88` : '0 1px 4px rgba(0,0,0,0.8)',
+                      transition: 'font-size 0.22s cubic-bezier(0.22,1,0.36,1), color 0.22s, text-shadow 0.22s',
+                      lineHeight: 1,
+                      zIndex: 10,
                     }}
-                  >
-                    <span style={{ letterSpacing: '0.05em' }}>
-                      {active ? (
-                        <span style={{ fontSize: '0.5rem', display: 'block', color: 'rgba(206,162,121,0.6)', letterSpacing: '0.1em', lineHeight: 1 }}>PISO</span>
-                      ) : null}
-                      {p}
-                    </span>
-                    {est && (
-                      <span style={{
-                        width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
-                        background: active ? dot : dot,
-                        opacity: active ? 1 : 0.7,
-                        boxShadow: active ? `0 0 6px ${dot}` : 'none',
-                        transition: 'box-shadow 0.3s',
-                      }} />
-                    )}
-                  </button>
-                )
-              })}
-
-              {/* Base del edificio */}
-              <div style={{ height: '4px', background: 'linear-gradient(90deg, transparent, rgba(206,162,121,0.4), transparent)' }} />
-            </div>
+                  >{p}</button>
+                </div>
+              )
+            })}
 
             {/* Leyenda */}
             <div style={{
