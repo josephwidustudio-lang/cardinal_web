@@ -51,13 +51,18 @@ export default function Home() {
           .eq('edificio_id', edificioId).eq('categoria', 'galeria').order('orden')
         setImagenes((imgs ?? []).filter((i: any) => i.url))
 
-        // Tiempo real: cuando cambia proyecto_config se actualiza
+        // Real-time: escucha cambios en proyecto_config
         channel = supabase
-          .channel('proyecto-realtime')
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'proyecto_config' },
-            async () => {
-              const { data: fresh } = await supabase.from('proyecto_config').select('*').limit(1).single()
-              if (fresh) setProyectoCfg(fresh)
+          .channel('proyecto-config-changes')
+          .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'proyecto_config' },
+            async (payload) => {
+              if (payload.new) {
+                setProyectoCfg(payload.new)
+              } else {
+                const { data: fresh } = await supabase.from('proyecto_config').select('*').limit(1).single()
+                if (fresh) setProyectoCfg(fresh)
+              }
             }
           )
           .subscribe()
@@ -77,8 +82,8 @@ export default function Home() {
     document.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('focus', onFocus)
 
-    // Polling cada 15s como fallback definitivo
-    const interval = setInterval(refetch, 15000)
+    // Polling cada 5s como fallback definitivo
+    const interval = setInterval(refetch, 5000)
 
     return () => {
       if (channel) supabase.removeChannel(channel)
