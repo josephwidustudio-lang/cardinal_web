@@ -29,20 +29,15 @@ const BADGE: Record<string, { bg: string; color: string; label: string }> = {
 const PISOS_ALL = [9,8,7,6,5,4,3,2,1]
 
 export default function Home() {
-  const [proyectoCfg, setProyectoCfg] = useState<any>(null)
+
   const [imagenes,    setImagenes]    = useState<any[]>([])
   const [loading,     setLoading]     = useState(true)
   const [filtroPiso,  setFiltroPiso]  = useState<number|null>(null)
 
   useEffect(() => {
-    let channel: any
-
     async function cargar() {
-      const [{ data: cfg }, { data: eds }] = await Promise.all([
-        supabase.from('proyecto_config').select('*').limit(1).single(),
-        supabase.from('edificios').select('id').eq('activo', true).order('orden').limit(1),
-      ])
-      if (cfg) setProyectoCfg(cfg)
+      const { data: eds } = await supabase
+        .from('edificios').select('id').eq('activo', true).order('orden').limit(1)
 
       if (eds?.[0]) {
         const edificioId = eds[0].id
@@ -50,47 +45,10 @@ export default function Home() {
           .from('edificio_imagenes').select('*')
           .eq('edificio_id', edificioId).eq('categoria', 'galeria').order('orden')
         setImagenes((imgs ?? []).filter((i: any) => i.url))
-
-        // Real-time: escucha cambios en proyecto_config
-        channel = supabase
-          .channel('proyecto-config-changes')
-          .on('postgres_changes',
-            { event: '*', schema: 'public', table: 'proyecto_config' },
-            async (payload) => {
-              if (payload.new) {
-                setProyectoCfg(payload.new)
-              } else {
-                const { data: fresh } = await supabase.from('proyecto_config').select('*').limit(1).single()
-                if (fresh) setProyectoCfg(fresh)
-              }
-            }
-          )
-          .subscribe()
       }
       setLoading(false)
     }
-
     cargar()
-
-    // Refresh cada vez que la pestaña vuelve a estar visible
-    const refetch = () => {
-      supabase.from('proyecto_config').select('*').limit(1).single()
-        .then(({ data }) => { if (data) setProyectoCfg(data) })
-    }
-    const onVisibility = () => { if (document.visibilityState === 'visible') refetch() }
-    const onFocus = () => refetch()
-    document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('focus', onFocus)
-
-    // Polling cada 5s como fallback definitivo
-    const interval = setInterval(refetch, 5000)
-
-    return () => {
-      if (channel) supabase.removeChannel(channel)
-      document.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('focus', onFocus)
-      clearInterval(interval)
-    }
   }, [])
 
   return (
@@ -252,26 +210,18 @@ function UnidadesSection({ filtroPiso, setFiltroPiso }: {
   const [cfg, setCfg] = useState<any>(null)
 
   useEffect(() => {
-    const fetchCfg = () =>
-      supabase.from('proyecto_config').select('*').limit(1).single()
-        .then(({ data }) => { if (data) setCfg(data) })
+    const fetchCfg = async () => {
+      const { data } = await supabase
+        .from('proyecto_config')
+        .select('*')
+        .limit(1)
+        .single()
+      if (data) setCfg(data)
+    }
 
     fetchCfg()
-
-    // Polling cada 3 segundos
-    const interval = setInterval(fetchCfg, 3000)
-
-    // Supabase realtime
-    const channel = supabase
-      .channel('unidades-section-cfg')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'proyecto_config' },
-        (payload) => { if (payload.new) setCfg(payload.new) })
-      .subscribe()
-
-    return () => {
-      clearInterval(interval)
-      supabase.removeChannel(channel)
-    }
+    const interval = setInterval(fetchCfg, 4000)
+    return () => clearInterval(interval)
   }, [])
 
   if (!cfg) return null
