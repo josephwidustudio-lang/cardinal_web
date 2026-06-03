@@ -317,8 +317,10 @@ function UnidadesSection({ filtroPiso, setFiltroPiso }: {
               {filasFiltradas.map((f, i) => {
                 const color = ESTADO_COLOR[f.estado] ?? '#7A9BA8'
                 return (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(206,162,121,0.07)', transition: 'background 0.2s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(206,162,121,0.04)')}
+                  <tr key={i}
+                    onClick={() => window.location.href = `/proyecto?piso=${f.piso}&lado=${f.lado}`}
+                    style={{ borderBottom: '1px solid rgba(206,162,121,0.07)', transition: 'background 0.2s', cursor: 'pointer' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(206,162,121,0.06)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                     <td style={{ padding: '1rem 1.2rem', color: '#CEA279', fontWeight: 600, fontSize: '1.1rem' }}>{f.piso}</td>
                     <td style={{ padding: '1rem 1.2rem', color: '#F5F0EA', fontWeight: 500 }}>
@@ -341,12 +343,9 @@ function UnidadesSection({ filtroPiso, setFiltroPiso }: {
                       </span>
                     </td>
                     <td style={{ padding: '1rem 1.2rem' }}>
-                      {f.estado === 'disponible' && (
-                        <a href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hola, me interesa el Piso ${f.piso} - ${f.lado === 'frente' ? 'Frente' : 'Contrafrente'} de ${cfg.nombre}`)}`}
-                          target="_blank" style={{ fontSize: '0.68rem', color: '#CEA279', textDecoration: 'none', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
-                          Consultar →
-                        </a>
-                      )}
+                      <span style={{ fontSize: '0.68rem', color: '#CEA279', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+                        Ver detalle →
+                      </span>
                     </td>
                   </tr>
                 )

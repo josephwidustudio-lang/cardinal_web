@@ -1,5 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ChatWidget from '@/components/layout/ChatWidget'
 import { supabase } from '@/lib/supabase'
@@ -8,9 +9,13 @@ import { fetchProyectoConfig } from '@/lib/fetchProyecto'
 const LOGO = 'https://owrawcvokdhdvnucanat.supabase.co/storage/v1/object/public/imagenes/brand/cardinal_logotipo.svg'
 const PISOS = [9,8,7,6,5,4,3,2,1]
 
-export default function ProyectoPage() {
-  const [piso, setPiso]               = useState(9)
-  const [lado, setLado]               = useState<'frente' | 'contrafrente'>('frente')
+function ProyectoPageInner() {
+  const params = useSearchParams()
+  const pisoParam = params.get('piso')
+  const ladoParam = params.get('lado')
+
+  const [piso, setPiso]               = useState<number>(pisoParam ? parseInt(pisoParam) : 9)
+  const [lado, setLado]               = useState<'frente' | 'contrafrente'>(ladoParam === 'contrafrente' ? 'contrafrente' : 'frente')
   const [cfg, setCfg]                 = useState<any>(null)
   const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
   const [allUnidades, setAllUnidades] = useState<any[]>([])
@@ -282,5 +287,17 @@ export default function ProyectoPage() {
       </div>
       <ChatWidget mode="floating" alwaysShow />
     </main>
+  )
+}
+
+export default function ProyectoPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ background: '#0D3542', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#7A9BA8', fontSize: '0.85rem' }}>Cargando...</div>
+      </main>
+    }>
+      <ProyectoPageInner />
+    </Suspense>
   )
 }
