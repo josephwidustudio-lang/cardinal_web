@@ -38,7 +38,8 @@ export default function ProyectoPage() {
           .proyecto-sidebar  { width: 100% !important; height: 60vw !important; min-height: 260px; max-height: 380px; }
           .proyecto-right    { overflow-y: visible !important; }
           .proyecto-grid     { grid-template-columns: 1fr !important; }
-          .proyecto-header   { padding: 1.2rem 1.5rem !important; }
+          .proyecto-header   { padding: 1.2rem 1.5rem !important; justify-content: center !important; text-align: center; }
+          .proyecto-header > div:first-child { justify-content: center !important; }
           .proyecto-axo      { padding: 2rem 1.5rem !important; min-height: 260px !important; border-right: none !important; border-bottom: 1px solid rgba(206,162,121,0.1) !important; }
           .proyecto-info     { padding: 2rem 1.5rem !important; }
           .piso-num          { font-size: 3.5rem !important; }
