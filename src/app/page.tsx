@@ -67,16 +67,24 @@ export default function Home() {
 
     cargar()
 
-    // Refresh al volver a la pestaña (fallback si real-time no funciona)
-    const onFocus = () => {
+    // Refresh cada vez que la pestaña vuelve a estar visible
+    const refetch = () => {
       supabase.from('proyecto_config').select('*').limit(1).single()
         .then(({ data }) => { if (data) setProyectoCfg(data) })
     }
+    const onVisibility = () => { if (document.visibilityState === 'visible') refetch() }
+    const onFocus = () => refetch()
+    document.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('focus', onFocus)
+
+    // Polling cada 15s como fallback definitivo
+    const interval = setInterval(refetch, 15000)
 
     return () => {
       if (channel) supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('focus', onFocus)
+      clearInterval(interval)
     }
   }, [])
 
