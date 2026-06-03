@@ -20,16 +20,11 @@ function ProyectoPageInner() {
   const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
   const [allUnidades, setAllUnidades] = useState<any[]>([])
   const [animKey, setAnimKey]         = useState(0)
-  const [imgOpacity, setImgOpacity]   = useState(1)
   const prevPiso                      = useRef(piso)
 
   function changePiso(p: number) {
     prevPiso.current = piso
-    setImgOpacity(0)
-    setTimeout(() => {
-      setPiso(p)
-      setImgOpacity(1)
-    }, 180)
+    setPiso(p)
     setAnimKey(k => k + 1)
   }
 
@@ -154,14 +149,11 @@ function ProyectoPageInner() {
             <p style={{ fontSize: '0.72rem', color: '#7A9BA8' }}>{cfg.descripcion}</p>
           </div>
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-            {/* Imagen del edificio: crossfade al cambiar piso */}
+            {/* Imagen del edificio */}
             <img
-              src={`/edificio/${piso + 1}-100.jpg`}
-              alt={`Piso ${piso}`}
-              style={{
-                width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block',
-                opacity: imgOpacity, transition: 'opacity 0.18s ease',
-              }}
+              src="/edificio/0-100.jpg"
+              alt="Edificio"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
             />
 
             {/* Panel selector de pisos — columna derecha */}
