@@ -141,9 +141,7 @@ export default function Home() {
       </section>
 
       {/* UNIDADES */}
-      {proyectoCfg && (
-        <UnidadesSection cfg={proyectoCfg} filtroPiso={filtroPiso} setFiltroPiso={setFiltroPiso} />
-      )}
+      <UnidadesSection filtroPiso={filtroPiso} setFiltroPiso={setFiltroPiso} />
 
       {/* GALERIA */}
       {imagenes.length > 0 && (
@@ -247,11 +245,37 @@ const ESTADO_LABEL_MAP: Record<string, string> = {
   disponible: 'Disponible', reservado: 'Reservado', vendido: 'Vendido'
 }
 
-function UnidadesSection({ cfg, filtroPiso, setFiltroPiso }: {
-  cfg: any
+function UnidadesSection({ filtroPiso, setFiltroPiso }: {
   filtroPiso: number | null
   setFiltroPiso: (p: number | null) => void
 }) {
+  const [cfg, setCfg] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchCfg = () =>
+      supabase.from('proyecto_config').select('*').limit(1).single()
+        .then(({ data }) => { if (data) setCfg(data) })
+
+    fetchCfg()
+
+    // Polling cada 3 segundos
+    const interval = setInterval(fetchCfg, 3000)
+
+    // Supabase realtime
+    const channel = supabase
+      .channel('unidades-section-cfg')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'proyecto_config' },
+        (payload) => { if (payload.new) setCfg(payload.new) })
+      .subscribe()
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  if (!cfg) return null
+
   const overrides = cfg.pisos_override ?? {}
   const wa = cfg.wa_number ?? ''
 
