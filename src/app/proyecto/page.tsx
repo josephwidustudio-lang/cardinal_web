@@ -30,18 +30,19 @@ function ProyectoPageInner() {
   }
 
   // SVG floor definitions — id, piso number (null = non-selectable), label, label position
+  // lx/ly = centroid of the RIGHT rectangular body of each L-shaped polygon
   const SVG_FLOORS = [
-    { id: 'piso-sum', piso: null as number|null, label: 'SUM', lx: 250, ly: 57  },
-    { id: 'piso-9',   piso: 9,                   label: '9',   lx: 250, ly: 92  },
-    { id: 'piso-8',   piso: 8,                   label: '8',   lx: 250, ly: 151 },
-    { id: 'piso-7',   piso: 7,                   label: '7',   lx: 250, ly: 197 },
-    { id: 'piso-6',   piso: 6,                   label: '6',   lx: 250, ly: 246 },
-    { id: 'piso-5',   piso: 5,                   label: '5',   lx: 250, ly: 292 },
-    { id: 'piso-4',   piso: 4,                   label: '4',   lx: 250, ly: 333 },
-    { id: 'piso-3',   piso: 3,                   label: '3',   lx: 250, ly: 385 },
-    { id: 'piso-2',   piso: 2,                   label: '2',   lx: 250, ly: 432 },
-    { id: 'piso-1',   piso: 1,                   label: '1',   lx: 250, ly: 479 },
-    { id: 'piso-pb',  piso: null as number|null,  label: 'PB',  lx: 250, ly: 537 },
+    { id: 'piso-sum', piso: null as number|null, label: 'SUM', lx: 229, ly: 42  },
+    { id: 'piso-9',   piso: 9,                   label: '9',   lx: 248, ly: 91  },
+    { id: 'piso-8',   piso: 8,                   label: '8',   lx: 248, ly: 139 },
+    { id: 'piso-7',   piso: 7,                   label: '7',   lx: 248, ly: 187 },
+    { id: 'piso-6',   piso: 6,                   label: '6',   lx: 248, ly: 236 },
+    { id: 'piso-5',   piso: 5,                   label: '5',   lx: 248, ly: 285 },
+    { id: 'piso-4',   piso: 4,                   label: '4',   lx: 248, ly: 333 },
+    { id: 'piso-3',   piso: 3,                   label: '3',   lx: 248, ly: 381 },
+    { id: 'piso-2',   piso: 2,                   label: '2',   lx: 248, ly: 431 },
+    { id: 'piso-1',   piso: 1,                   label: '1',   lx: 229, ly: 479 },
+    { id: 'piso-pb',  piso: null as number|null,  label: 'PB',  lx: 229, ly: 538 },
   ]
 
   function svgFloorColor(floorDef: typeof SVG_FLOORS[0]) {
@@ -195,8 +196,8 @@ function ProyectoPageInner() {
                 const color   = svgFloorColor(f)
                 const active  = f.piso !== null && piso === f.piso
                 const hovered = hoveredPiso === f.id
-                const fillOp  = active ? 0.55 : hovered ? 0.35 : 0
-                const strokeOp= active ? 1    : hovered ? 0.8  : 0
+                const fillOp  = active ? 0.32 : hovered ? 0.18 : 0
+                const strokeOp= active ? 0.9  : hovered ? 0.6  : 0
                 const shapeProps = {
                   fill: color, fillOpacity: fillOp,
                   stroke: color, strokeWidth: 1.5, strokeOpacity: strokeOp,
@@ -228,9 +229,9 @@ function ProyectoPageInner() {
                     <text
                       x={f.lx} y={f.ly}
                       textAnchor="middle" dominantBaseline="middle"
-                      fill={active ? color : 'rgba(245,240,234,0.85)'}
-                      fontSize={active ? 22 : 17}
-                      fontWeight={active ? 700 : 500}
+                      fill={active ? color : 'rgba(245,240,234,0.9)'}
+                      fontSize={active ? 22 : 18}
+                      fontWeight={700}
                       fontFamily="system-ui, sans-serif"
                       style={{ transition: 'font-size 0.2s, fill 0.2s', pointerEvents: 'none',
                                textShadow: active ? `0 0 8px ${color}` : '0 1px 3px rgba(0,0,0,0.8)' } as React.CSSProperties}
