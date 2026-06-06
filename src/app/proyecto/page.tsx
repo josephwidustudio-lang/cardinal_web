@@ -22,11 +22,16 @@ function ProyectoPageInner() {
   const [animKey, setAnimKey]         = useState(0)
   const [hoveredPiso, setHoveredPiso] = useState<string | null>(null)
   const prevPiso                      = useRef(piso)
+  const infoRef                       = useRef<HTMLDivElement>(null)
 
   function changePiso(p: number) {
     prevPiso.current = piso
     setPiso(p)
     setAnimKey(k => k + 1)
+    // En mobile: scroll hacia el panel de info
+    if (window.innerWidth <= 768) {
+      setTimeout(() => infoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+    }
   }
 
   // SVG floor definitions — id, piso number (null = non-selectable), label, label position
@@ -127,7 +132,8 @@ function ProyectoPageInner() {
 
         @media (max-width: 768px) {
           .proyecto-layout   { flex-direction: column !important; height: auto !important; }
-          .proyecto-sidebar  { width: 100% !important; height: 60vw !important; min-height: 260px; max-height: 380px; }
+          /* sidebar: imagen completa con el aspect ratio real 451/621 */
+          .proyecto-sidebar  { width: 100% !important; height: calc(100vw * 621 / 451) !important; max-height: none !important; min-height: unset !important; flex-shrink: 0 !important; }
           .proyecto-right    { overflow-y: visible !important; }
           .proyecto-grid     { grid-template-columns: 1fr !important; }
           .proyecto-header   { padding: 1.2rem 1.5rem !important; justify-content: center !important; text-align: center; }
@@ -135,9 +141,6 @@ function ProyectoPageInner() {
           .proyecto-axo      { padding: 2rem 1.5rem !important; min-height: 260px !important; border-right: none !important; border-bottom: 1px solid rgba(206,162,121,0.1) !important; }
           .proyecto-info     { padding: 2rem 1.5rem !important; }
           .piso-num          { font-size: 3.5rem !important; }
-          .pisos-selector    { width: 100% !important; right: 0 !important; top: auto !important; bottom: 0 !important; transform: none !important; flex-direction: row !important; justify-content: center !important; padding: 0.4rem !important; background: rgba(10,45,56,0.92) !important; }
-          .pisos-btn-wrap    { flex-direction: row !important; }
-          .piso-bar          { min-width: 36px !important; height: 32px !important; flex-direction: column !important; gap: 1px !important; padding: 0 0.4rem !important; }
         }
       `}</style>
 
@@ -263,7 +266,7 @@ function ProyectoPageInner() {
         </div>
 
         {/* ── PANEL DERECHO ── */}
-        <div className="proyecto-right" style={{ flex: 1, overflowY: 'auto' }}>
+        <div ref={infoRef} className="proyecto-right" style={{ flex: 1, overflowY: 'auto' }}>
 
           {/* Header */}
           <div className="proyecto-header" style={{
