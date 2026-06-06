@@ -180,6 +180,7 @@ function ProyectoPageInner() {
             {/* SVG interactivo — polígonos por piso */}
             <svg
               viewBox="0 0 451 621"
+              preserveAspectRatio="xMidYMin slice"
               xmlns="http://www.w3.org/2000/svg"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
             >
@@ -227,9 +228,9 @@ function ProyectoPageInner() {
                     <text
                       x={f.lx} y={f.ly}
                       textAnchor="middle" dominantBaseline="middle"
-                      fill={active ? color : 'rgba(245,240,234,0.75)'}
-                      fontSize={active ? 14 : 11}
-                      fontWeight={active ? 700 : 400}
+                      fill={active ? color : 'rgba(245,240,234,0.85)'}
+                      fontSize={active ? 22 : 17}
+                      fontWeight={active ? 700 : 500}
                       fontFamily="system-ui, sans-serif"
                       style={{ transition: 'font-size 0.2s, fill 0.2s', pointerEvents: 'none',
                                textShadow: active ? `0 0 8px ${color}` : '0 1px 3px rgba(0,0,0,0.8)' } as React.CSSProperties}
