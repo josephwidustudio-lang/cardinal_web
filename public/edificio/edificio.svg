@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 621">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #ceff00;
+        stroke-miterlimit: 10;
+      }
+    </style>
+  </defs>
+  <g id="piso-pb">
+    <rect id="piso-pb-2" data-name="piso-pb" class="cls-1" x="137.15" y="507.29" width="183.97" height="60.36"/>
+  </g>
+  <g id="piso-1">
+    <rect id="piso-1-2" data-name="piso-1" class="cls-1" x="143.25" y="458.81" width="171.45" height="40.45"/>
+  </g>
+  <g id="piso-2">
+    <polygon id="piso-2-2" data-name="piso-2" class="cls-1" points="314.7 410 182.1 410 182.1 419.31 147.74 419.31 147.74 454.63 181.13 454.63 181.13 451.1 314.7 451.1 314.7 410"/>
+  </g>
+  <g id="piso-3">
+    <polygon id="piso-3-2" data-name="piso-3" class="cls-1" points="314.7 361.6 182.18 361.6 182.18 373.16 146.7 373.16 146.7 408.8 181.37 408.8 181.37 401.09 314.7 401.09 314.7 361.6"/>
+  </g>
+  <g id="piso-4">
+    <path id="piso-4-2" data-name="piso-4" class="cls-1" d="M314.7,312.21v41.06h-132.71v11.56h-35.29v-38.05h35.17v-14.57h132.83Z"/>
+  </g>
+  <g id="piso-5">
+    <polygon id="piso-5-2" data-name="piso-5" class="cls-1" points="314.7 305.11 314.7 264.65 182.23 264.65 182.23 282.96 146.7 282.96 146.7 318.59 181.87 318.59 181.87 305.11 314.7 305.11"/>
+  </g>
+  <g id="piso-6">
+    <polygon id="piso-6-2" data-name="piso-6" class="cls-1" points="314.7 215.72 314.7 256.98 181.8 256.98 181.8 274.32 146.7 274.32 146.7 237.07 181.64 237.07 181.64 215.72 314.7 215.72"/>
+  </g>
+  <g id="piso-7">
+    <polygon id="piso-7-2" data-name="piso-7" class="cls-1" points="314.7 207.59 181.58 207.59 181.58 227.66 146.7 227.66 146.7 190.74 181.58 190.74 181.58 166.34 314.7 166.34 314.7 207.59"/>
+  </g>
+  <g id="piso-8">
+    <polygon id="piso-8-2" data-name="piso-8" class="cls-1" points="314.7 157.87 314.7 119.34 182.4 119.34 182.4 145.99 147.41 145.99 147.41 182.59 181.58 182.59 181.58 157.87 314.7 157.87"/>
+  </g>
+  <g id="piso-9">
+    <path id="piso-9-2" data-name="piso-9" class="cls-1" d="M314.7,70.7v40.29h-132.46v26.97h-34.84v-37.4h34.68v-29.86s132.22.39,132.62,0Z"/>
+  </g>
+  <g id="piso-sum">
+    <polygon id="piso-sum-2" data-name="piso-sum" class="cls-1" points="143.71 21.33 143.71 91.65 182.24 91.65 182.24 62.51 314.7 62.51 314.7 21.33 143.71 21.33"/>
+  </g>
+</svg>

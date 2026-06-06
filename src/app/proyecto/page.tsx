@@ -20,12 +20,33 @@ function ProyectoPageInner() {
   const [pisoEstados, setPisoEstados] = useState<Record<number, string>>({})
   const [allUnidades, setAllUnidades] = useState<any[]>([])
   const [animKey, setAnimKey]         = useState(0)
+  const [hoveredPiso, setHoveredPiso] = useState<string | null>(null)
   const prevPiso                      = useRef(piso)
 
   function changePiso(p: number) {
     prevPiso.current = piso
     setPiso(p)
     setAnimKey(k => k + 1)
+  }
+
+  // SVG floor definitions — id, piso number (null = non-selectable), label, label position
+  const SVG_FLOORS = [
+    { id: 'piso-sum', piso: null as number|null, label: 'SUM', lx: 250, ly: 57  },
+    { id: 'piso-9',   piso: 9,                   label: '9',   lx: 250, ly: 92  },
+    { id: 'piso-8',   piso: 8,                   label: '8',   lx: 250, ly: 151 },
+    { id: 'piso-7',   piso: 7,                   label: '7',   lx: 250, ly: 197 },
+    { id: 'piso-6',   piso: 6,                   label: '6',   lx: 250, ly: 246 },
+    { id: 'piso-5',   piso: 5,                   label: '5',   lx: 250, ly: 292 },
+    { id: 'piso-4',   piso: 4,                   label: '4',   lx: 250, ly: 333 },
+    { id: 'piso-3',   piso: 3,                   label: '3',   lx: 250, ly: 385 },
+    { id: 'piso-2',   piso: 2,                   label: '2',   lx: 250, ly: 432 },
+    { id: 'piso-1',   piso: 1,                   label: '1',   lx: 250, ly: 479 },
+    { id: 'piso-pb',  piso: null as number|null,  label: 'PB',  lx: 250, ly: 537 },
+  ]
+
+  function svgFloorColor(floorDef: typeof SVG_FLOORS[0]) {
+    if (floorDef.piso === null) return '#CEA279'
+    return pisoColor(pisoEstados[floorDef.piso])
   }
 
   useEffect(() => {
@@ -156,86 +177,67 @@ function ProyectoPageInner() {
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
             />
 
-            {/* Panel selector de pisos — columna derecha */}
-            <div style={{
-              position: 'absolute', top: 0, right: 0, bottom: 0,
-              width: '72px',
-              display: 'flex', flexDirection: 'column',
-              background: 'rgba(6,26,33,0.82)', backdropFilter: 'blur(12px)',
-              borderLeft: '1px solid rgba(206,162,121,0.15)',
-            }}>
-              {/* SUM / Terraza — techo del edificio, no clickeable */}
-              <div style={{
-                flex: 0.9,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '3px',
-                borderBottom: '1px solid rgba(206,162,121,0.2)',
-              }}>
-                <span style={{ fontSize: '0.45rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(206,162,121,0.45)' }}>SUM</span>
-                <span style={{ fontSize: '0.4rem', letterSpacing: '0.1em', color: 'rgba(206,162,121,0.25)', textTransform: 'uppercase' }}>Terraza</span>
-              </div>
+            {/* SVG interactivo — polígonos por piso */}
+            <svg
+              viewBox="0 0 451 621"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            >
+              <defs>
+                <filter id="floor-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
 
-              {/* Pisos 9 → 1 */}
-              {PISOS.map((p, idx) => {
-                const est    = pisoEstados[p]
-                const color  = pisoColor(est)
-                const active = piso === p
+              {SVG_FLOORS.map(f => {
+                const color   = svgFloorColor(f)
+                const active  = f.piso !== null && piso === f.piso
+                const hovered = hoveredPiso === f.id
+                const fillOp  = active ? 0.55 : hovered ? 0.35 : 0
+                const strokeOp= active ? 1    : hovered ? 0.8  : 0
+                const shapeProps = {
+                  fill: color, fillOpacity: fillOp,
+                  stroke: color, strokeWidth: 1.5, strokeOpacity: strokeOp,
+                  filter: active ? 'url(#floor-glow)' : undefined,
+                  style: { transition: 'fill-opacity 0.2s, stroke-opacity 0.2s' } as React.CSSProperties,
+                }
                 return (
-                  <button
-                    key={p}
-                    onClick={() => changePiso(p)}
-                    style={{
-                      flex: 1, width: '100%', border: 'none',
-                      borderTop: '1px solid rgba(206,162,121,0.08)',
-                      cursor: 'pointer',
-                      background: active ? `${color}28` : 'transparent',
-                      boxShadow: active ? `inset 0 0 20px ${color}22` : 'none',
-                      display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', justifyContent: 'center', gap: '4px',
-                      transition: 'background 0.25s, box-shadow 0.25s',
-                      position: 'relative',
-                    }}
+                  <g
+                    key={f.id}
+                    onClick={f.piso !== null ? () => changePiso(f.piso!) : undefined}
+                    onMouseEnter={() => setHoveredPiso(f.id)}
+                    onMouseLeave={() => setHoveredPiso(null)}
+                    style={{ cursor: f.piso !== null ? 'pointer' : 'default' }}
                   >
-                    {active && (
-                      <div style={{
-                        position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
-                        background: color, boxShadow: `0 0 10px ${color}`,
-                      }} />
-                    )}
-                    <span style={{
-                      fontFamily: 'Panton, system-ui, sans-serif',
-                      fontSize: active ? '1.6rem' : '1.1rem',
-                      fontWeight: active ? 700 : 500,
-                      color: active ? color : 'rgba(245,240,234,0.72)',
-                      textShadow: active ? `0 0 14px ${color}, 0 0 28px ${color}88` : '0 1px 3px rgba(0,0,0,0.6)',
-                      lineHeight: 1,
-                      transition: 'font-size 0.22s cubic-bezier(0.22,1,0.36,1), color 0.22s, text-shadow 0.22s',
-                    }}>{p}</span>
-                    {est && (
-                      <span style={{
-                        width: '5px', height: '5px', borderRadius: '50%',
-                        background: color,
-                        opacity: active ? 1 : 0.5,
-                        boxShadow: active ? `0 0 6px ${color}` : 'none',
-                        flexShrink: 0,
-                        transition: 'box-shadow 0.25s, opacity 0.25s',
-                      }} />
-                    )}
-                  </button>
+                    {/* Shape */}
+                    {f.id === 'piso-pb'  && <rect x="137.15" y="507.29" width="183.97" height="60.36" {...shapeProps}/>}
+                    {f.id === 'piso-1'   && <rect x="143.25" y="458.81" width="171.45" height="40.45" {...shapeProps}/>}
+                    {f.id === 'piso-2'   && <polygon points="314.7 410 182.1 410 182.1 419.31 147.74 419.31 147.74 454.63 181.13 454.63 181.13 451.1 314.7 451.1 314.7 410" {...shapeProps}/>}
+                    {f.id === 'piso-3'   && <polygon points="314.7 361.6 182.18 361.6 182.18 373.16 146.7 373.16 146.7 408.8 181.37 408.8 181.37 401.09 314.7 401.09 314.7 361.6" {...shapeProps}/>}
+                    {f.id === 'piso-4'   && <path d="M314.7,312.21v41.06h-132.71v11.56h-35.29v-38.05h35.17v-14.57h132.83Z" {...shapeProps}/>}
+                    {f.id === 'piso-5'   && <polygon points="314.7 305.11 314.7 264.65 182.23 264.65 182.23 282.96 146.7 282.96 146.7 318.59 181.87 318.59 181.87 305.11 314.7 305.11" {...shapeProps}/>}
+                    {f.id === 'piso-6'   && <polygon points="314.7 215.72 314.7 256.98 181.8 256.98 181.8 274.32 146.7 274.32 146.7 237.07 181.64 237.07 181.64 215.72 314.7 215.72" {...shapeProps}/>}
+                    {f.id === 'piso-7'   && <polygon points="314.7 207.59 181.58 207.59 181.58 227.66 146.7 227.66 146.7 190.74 181.58 190.74 181.58 166.34 314.7 166.34 314.7 207.59" {...shapeProps}/>}
+                    {f.id === 'piso-8'   && <polygon points="314.7 157.87 314.7 119.34 182.4 119.34 182.4 145.99 147.41 145.99 147.41 182.59 181.58 182.59 181.58 157.87 314.7 157.87" {...shapeProps}/>}
+                    {f.id === 'piso-9'   && <path d="M314.7,70.7v40.29h-132.46v26.97h-34.84v-37.4h34.68v-29.86s132.22.39,132.62,0Z" {...shapeProps}/>}
+                    {f.id === 'piso-sum' && <polygon points="143.71 21.33 143.71 91.65 182.24 91.65 182.24 62.51 314.7 62.51 314.7 21.33 143.71 21.33" {...shapeProps}/>}
+
+                    {/* Label */}
+                    <text
+                      x={f.lx} y={f.ly}
+                      textAnchor="middle" dominantBaseline="middle"
+                      fill={active ? color : 'rgba(245,240,234,0.75)'}
+                      fontSize={active ? 14 : 11}
+                      fontWeight={active ? 700 : 400}
+                      fontFamily="system-ui, sans-serif"
+                      style={{ transition: 'font-size 0.2s, fill 0.2s', pointerEvents: 'none',
+                               textShadow: active ? `0 0 8px ${color}` : '0 1px 3px rgba(0,0,0,0.8)' } as React.CSSProperties}
+                    >{f.label}</text>
+                  </g>
                 )
               })}
-
-              {/* PB / Hall — planta baja, no clickeable */}
-              <div style={{
-                flex: 1.6,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '3px',
-                borderTop: '1px solid rgba(206,162,121,0.2)',
-              }}>
-                <span style={{ fontSize: '0.5rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(206,162,121,0.45)' }}>PB</span>
-                <span style={{ fontSize: '0.4rem', letterSpacing: '0.1em', color: 'rgba(206,162,121,0.25)', textTransform: 'uppercase' }}>Hall</span>
-              </div>
-            </div>
+            </svg>
 
             {/* Leyenda */}
             <div style={{
