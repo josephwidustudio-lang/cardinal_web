@@ -33,14 +33,14 @@ function ProyectoPageInner() {
   // lx/ly = centroid of the RIGHT rectangular body of each L-shaped polygon
   const SVG_FLOORS = [
     { id: 'piso-sum', piso: null as number|null, label: 'SUM', lx: 229, ly: 42  },
-    { id: 'piso-9',   piso: 9,                   label: '9',   lx: 248, ly: 91  },
-    { id: 'piso-8',   piso: 8,                   label: '8',   lx: 248, ly: 139 },
-    { id: 'piso-7',   piso: 7,                   label: '7',   lx: 248, ly: 187 },
-    { id: 'piso-6',   piso: 6,                   label: '6',   lx: 248, ly: 236 },
-    { id: 'piso-5',   piso: 5,                   label: '5',   lx: 248, ly: 285 },
-    { id: 'piso-4',   piso: 4,                   label: '4',   lx: 248, ly: 333 },
-    { id: 'piso-3',   piso: 3,                   label: '3',   lx: 248, ly: 381 },
-    { id: 'piso-2',   piso: 2,                   label: '2',   lx: 248, ly: 431 },
+    { id: 'piso-9',   piso: 9,                   label: '9',   lx: 229, ly: 91  },
+    { id: 'piso-8',   piso: 8,                   label: '8',   lx: 229, ly: 139 },
+    { id: 'piso-7',   piso: 7,                   label: '7',   lx: 229, ly: 187 },
+    { id: 'piso-6',   piso: 6,                   label: '6',   lx: 229, ly: 236 },
+    { id: 'piso-5',   piso: 5,                   label: '5',   lx: 229, ly: 285 },
+    { id: 'piso-4',   piso: 4,                   label: '4',   lx: 229, ly: 333 },
+    { id: 'piso-3',   piso: 3,                   label: '3',   lx: 229, ly: 381 },
+    { id: 'piso-2',   piso: 2,                   label: '2',   lx: 229, ly: 431 },
     { id: 'piso-1',   piso: 1,                   label: '1',   lx: 229, ly: 479 },
     { id: 'piso-pb',  piso: null as number|null,  label: 'PB',  lx: 229, ly: 538 },
   ]
